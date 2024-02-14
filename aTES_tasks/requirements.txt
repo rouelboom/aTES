@@ -1,0 +1,17 @@
+aiohttp
+aiohttp-jsonrpc
+aiohttp_cors
+
+python-dateutil
+
+aiopg
+psycopg2
+SQLAlchemy
+
+alembic
+SQLAlchemy-Utils
+
+aio-pika
+
+m7-cerberus
+pym7auth-py3

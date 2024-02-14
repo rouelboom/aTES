@@ -1,0 +1,7 @@
+#!/bin/sh
+
+source /opt/algont/aTES/venv/task-tracker-venv/bin/activate
+
+python -m task_tracker.run
+
+deactivate

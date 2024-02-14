@@ -1,0 +1,81 @@
+#!/bin/sh
+
+PRODUCT=aTES
+SERVICE_USER=aTES
+BASE_NAME=task-tracker
+VIRTUAL_DOMAIN=task-tracker
+DB_NAME=task
+
+# Nginx parameters. Domain names
+DOMAIN="$(hostname --domain)"
+HOSTNAME="$(hostname)"
+
+
+# Virtual environment directory
+VENV_DIR=/opt/algont/${PRODUCT}/venv/${BASE_NAME}-venv
+
+# Alembic directory
+ALEMBIC_PATH=/opt/algont/${PRODUCT}/alembic/${BASE_NAME}
+
+# Create database
+psql -d postgres -U postgres -c "create database ${DB_NAME};"
+
+# Create service user
+if ! grep -q "${SERVICE_USER}" /etc/group ; then
+  groupadd ${SERVICE_USER}
+fi
+if ! id "${SERVICE_USER}" &>/dev/null ; then
+  useradd -s /bin/false -p 12345678 -g ${SERVICE_USER} -d /opt/algont/${PRODUCT} ${SERVICE_USER}
+fi
+
+# Create log folder
+mkdir -p /var/log/aTES/$BASE_NAME
+
+# Set up virtual environment
+# '.' works like 'source' in bash
+. $VENV_DIR/bin/activate
+
+# alembic migration
+cur_dir=$(pwd) && cd ${ALEMBIC_PATH} || exit;
+
+
+
+alembic -c ${ALEMBIC_PATH}/alembic.ini -n public upgrade head
+cd "$cur_dir" || exit
+
+deactivate
+
+# set permissions
+chown ${SERVICE_USER} /opt/algont
+chown ${SERVICE_USER} /opt/algont/${PRODUCT}
+chown ${SERVICE_USER} /opt/algont/${PRODUCT}/alembic
+chown ${SERVICE_USER} /opt/algont/${PRODUCT}/venv
+
+chown -R ${SERVICE_USER} ${ALEMBIC_PATH}
+chown -R ${SERVICE_USER} ${VENV_DIR}
+
+chown ${SERVICE_USER} /var/log/${PRODUCT}
+chown -R ${SERVICE_USER} /var/log/${PRODUCT}/${BASE_NAME}
+
+# executive permissions for startup script
+chmod 755 /usr/local/bin/${BASE_NAME}
+
+# Set up NGINX
+SERVER_NAME_VARIABLE="SERVER_NAME"
+NGINX_CONF_PATH="/etc/nginx/conf.d/"
+
+SERVER_NAME="$VIRTUAL_DOMAIN.$DOMAIN $VIRTUAL_DOMAIN.$HOSTNAME.$DOMAIN"
+sed -i.bak -e "s/$SERVER_NAME_VARIABLE/$SERVER_NAME/g" $NGINX_CONF_PATH/$VIRTUAL_DOMAIN.conf
+rm -f $NGINX_CONF_PATH/$VIRTUAL_DOMAIN.conf.bak
+
+echo "Updating nginx"
+systemctl reload nginx
+
+# Set up supervisor
+{
+    echo "Updating supervisor"
+    supervisorctl reread
+    supervisorctl update
+} || {
+    echo "Can not update supervisor due to some errors"
+}
