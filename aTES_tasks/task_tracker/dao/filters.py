@@ -1,8 +1,11 @@
 """
 Make smart filters
 """
-from m7_aiohttp.exceptions import InvalidParams
 
+class InvalidParams(Exception):
+    """
+    Raises if invalid params were passed in filter
+    """
 
 def make_string_filter(field: 'Column', field_filter: dict) -> 'BinaryExpression':
     """

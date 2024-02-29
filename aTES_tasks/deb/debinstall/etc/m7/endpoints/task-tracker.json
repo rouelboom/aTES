@@ -1,8 +1,0 @@
-{
-  "app_id": "14f72cdd0ad741d5ab14732378ab4afb",
-  "endpoints": {
-    "aTES:task-tracker:task-tracker": {
-      "url": "http://task-tracker.{root_domain}/jsonrpc/task-tracker"
-    }
-  }
-}

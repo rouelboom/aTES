@@ -12,6 +12,4 @@ alembic
 SQLAlchemy-Utils
 
 aio-pika
-
-m7-cerberus
-pym7auth-py3
+python-dotenv

@@ -4,19 +4,12 @@ Implementation of a service
 import logging
 from typing import List
 
-from aiohttp_jsonrpc_algont.handler import JSONRPCView
+from aiohttp_jsonrpc.handler import JSONRPCView
 from aiohttp_cors import CorsViewMixin
 
-from m7_aiohttp.auth.access import AccessAioHttp, Unauthorized, Forbidden
-from m7_aiohttp.exceptions import NotFound, InvalidParams
-from m7_aiohttp.util.jsonrpc_logged import jsonrpc_logged, jsonrpc_class_decorated
-from m7_cerberus.m7_validator import validated
-
-
-from task_tracker.api.exceptions import CustomException
-from task_tracker.validation import schemas
-from task_tracker.dao.dao_task_tracker import DAOTask
-
+from aTES_tasks.task_tracker.exceptions import Forbidden, InvalidParams, Unauthorized
+from aTES_tasks.task_tracker.validation import schemas
+from aTES_tasks.task_tracker.dao.dao_task import DAOTask
 
 logger = logging.getLogger('task-tracker')
 
@@ -31,7 +24,6 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
         Forbidden: Forbidden.code,
         InvalidParams: InvalidParams.code,
         NotFound: NotFound.code,
-        CustomException: CustomException.code
     }
 
 

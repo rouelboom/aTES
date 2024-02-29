@@ -7,21 +7,15 @@ import uuid
 import sqlalchemy
 from sqlalchemy import func
 
-from m7_aiohttp.exceptions import NotFound
-
-
-
-
-
-
-from task_tracker.api import const
-from task_tracker.db import Task
-from task_tracker.dao.filters import make_string_filter
+from aTES_tasks.task_tracker.api import const
+from aTES_tasks.task_tracker.exceptions import NotFound
+from aTES_tasks.task_tracker.db import Task
+from aTES_tasks.task_tracker.dao.filters import make_string_filter
 
 
 class DAOTask:
     """
-    DAO for Entity of Scaffolded application
+    DAO for 'task' table
     """
     def __init__(self, engine):
         self.engine = engine
@@ -53,12 +47,6 @@ class DAOTask:
         return dict(row)
 
     def _filtered_query(self, query, filter_: dict):
-
-
-        if const.SIMPLE_FILTER in filter_:
-            query_string = filter_[const.SIMPLE_FILTER][const.SIMPLE_FILTER_QUERY]
-            if query_string:
-                query = query.where(Task.c.name.ilike('%' + query_string + '%'))
         if const.TASK_NAME in filter_:
             query = query.where(make_string_filter(Task.c.name, filter_[const.TASK_NAME]))
         if const.TASK_ID in filter_:
