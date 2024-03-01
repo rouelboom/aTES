@@ -16,9 +16,16 @@
         "password": "guest"
     },
     "exchanges": {
-        "template-name": {
-            "name": "template-2",
+        "task_streaming": {
+            "name": "streaming.task",
+            "type": "topic"
+        },
+        "task_status_change": {
+            "name": "changed.task.status",
             "type": "topic"
         }
+    },
+    "exchange_subscriptions": {
+        "user_streaming": "streaming.user"
     }
 }

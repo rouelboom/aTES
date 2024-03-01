@@ -8,6 +8,7 @@ import logging
 import logging.config
 import json
 
+import aio_pika
 from aiohttp import web
 import aiohttp_cors
 
@@ -22,6 +23,7 @@ from aTES_tasks.task_tracker.db import init_engine
 from aTES_tasks.task_tracker.dao.dao_task import DAOTask
 
 from aTES_tasks.task_tracker.api.task_tracker import TaskTrackerService
+from aTES_tasks.task_tracker.rmq.publisher import RabbitMQPublisher
 
 logger = logging.getLogger('app')
 
@@ -52,34 +54,23 @@ async def on_app_start(app):
 
     engine = await init_engine()
     app['engine'] = engine
-    #
-    # rabbitmq_config = config['rabbitmq']
-    # rabbitmq_connection = Connection(
-    #     host=rabbitmq_config['host'],
-    #     port=rabbitmq_config['port'],
-    #     login=rabbitmq_config['login'],
-    #     password=rabbitmq_config['password']
-    # )
-    # await rabbitmq_connection.connect()
-    # app['rabbitmq_connection'] = rabbitmq_connection
-    #
-    # audit_object_info_exchange_props = config['exchanges']['audit_object_info']
-    # audit_object_info_queue_props = config['audit_object_info_queue']
-    # audit_object_info_consumer = Consumer(
-    #     connection=rabbitmq_connection,
-    #     exchange_name=audit_object_info_exchange_props['name'],
-    #     exchange_type=audit_object_info_exchange_props['type'],
-    #     exchange_durable=audit_object_info_exchange_props.get('durable', False),
-    #     exchange_auto_delete=audit_object_info_exchange_props.get('auto_delete', True),
-    #     queue_name=audit_object_info_queue_props['name'],
-    #     routing_key='#',  # TODO: change routing key if it's needed
-    #     queue_durable=audit_object_info_queue_props.get('durable', False),
-    #     queue_auto_delete=audit_object_info_queue_props.get('auto_delete', True),
-    #     callback=audit_object_info_queue_callback,
-    #     callback_data=app
-    # )
-    # await audit_object_info_consumer.connect()
-    # app['audit_object_info_consumer'] = audit_object_info_consumer
+
+    rabbitmq_config = config['rabbitmq']
+
+    rabbitmq_url = 'amqp://{}:{}@{}/'.format(
+        rabbitmq_config["login"],
+        rabbitmq_config["password"],
+        rabbitmq_config["host"]
+    )
+    rabbit_connection = await aio_pika.connect_robust(rabbitmq_url)
+    app['rabbit_connection'] = rabbit_connection
+    common_exchange_publisher = RabbitMQPublisher(
+        rabbit_connection,
+        exchange_name=config['exchanges']['common']['name'],
+        exchange_type=config['exchanges']['common']['type']
+    )
+    await common_exchange_publisher.connect()
+    app['common_exchange_publisher'] = common_exchange_publisher
 
     app['dao'] = DAOTask(engine)
 
@@ -88,10 +79,8 @@ async def on_app_stop(app):
     """
     Stop tasks on application destroy
     """
-    # await app['audit_object_info_consumer'].disconnect()
-    # await app['rabbitmq_connection'].disconnect()
-    
-    
+    await app['common_exchange_publisher'].close()
+
     app['engine'].close()
     await app['engine'].wait_closed()
 
