@@ -1,13 +1,16 @@
 """
 Implementation of a service
 """
+import json
 import logging
 from typing import List
 
 from aiohttp_jsonrpc.handler import JSONRPCView
 from aiohttp_cors import CorsViewMixin
 
+from aTES_tasks.task_tracker.api import const
 from aTES_tasks.task_tracker.exceptions import Forbidden, InvalidParams, NotFound, Unauthorized
+from aTES_tasks.task_tracker.rmq.publisher import RabbitMQPublisher
 from aTES_tasks.task_tracker.validation import schemas
 from aTES_tasks.task_tracker.dao.dao_task import DAOTask
 
@@ -27,10 +30,28 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
     @property
     def _dao(self) -> DAOTask:
         return self.request.app['dao']
+
+    @property
+    def _publisher(self) -> RabbitMQPublisher:
+        return self.request.app['task_publisher']
     #
     # @property
     # def _access(self) -> AccessAioHttp:
     #     return self.request.app['access']
+    @property
+    def _config(self) -> dict:
+        return self.request.app['config']
+
+    @property
+    def _streaming_routing_key(self):
+        return self._config['exchanges']['task_streaming']['name']
+
+    @staticmethod
+    def _message(obj: dict, event: str):
+        return {
+            'event': event,
+            'object': obj
+        }
 
     async def rpc_echo(self, message: str) -> str:
         """
@@ -75,7 +96,12 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
 
         """
         # self._access.authenticated(self.request)
-        return await self._dao.add(task)
+        task_id = await self._dao.add(task)
+        task = await self._dao.get(task_id)
+        await self._publisher.publish(
+            self._streaming_routing_key,
+            json.dumps(self._message(task, const.EVENT__TASK_CREATED))
+        )
 
     async def rpc_set(self, task: dict):
         """
@@ -87,6 +113,11 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
         """
         # self._access.authenticated(self.request)
         await self._dao.set(task)
+        task = await self._dao.get(task['id'])
+        await self._publisher.publish(
+            self._streaming_routing_key,
+            json.dumps(self._message(task, const.EVENT__TASK_UPDATED))
+        )
 
     async def rpc_delete(self, id):
         """
@@ -98,6 +129,11 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
         """
         # self._access.authenticated(self.request)
         await self._dao.delete(id)
+        task = await self._dao.get(id)
+        await self._publisher.publish(
+            self._streaming_routing_key,
+            json.dumps(self._message(task, const.EVENT__TASK_DELETED))
+        )
 
     # @validated(schemas.GET_COUNT_BY_FILTER)
     async def rpc_get_count_by_filter(self, filter: dict) -> int:  # pylint: disable = redefined-builtin
