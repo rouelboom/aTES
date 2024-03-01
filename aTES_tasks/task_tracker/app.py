@@ -22,7 +22,7 @@ from aTES_tasks.task_tracker.api import const
 from aTES_tasks.task_tracker.db import init_engine
 from aTES_tasks.task_tracker.dao.dao_task import DAOTask
 
-from aTES_tasks.task_tracker.api.task_tracker import TaskTrackerService
+from aTES_tasks.task_tracker.api.tasks import TaskTrackerService
 from aTES_tasks.task_tracker.rmq.publisher import RabbitMQPublisher
 
 logger = logging.getLogger('app')

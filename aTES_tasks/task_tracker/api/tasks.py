@@ -7,14 +7,11 @@ from typing import List
 from aiohttp_jsonrpc.handler import JSONRPCView
 from aiohttp_cors import CorsViewMixin
 
-from aTES_tasks.task_tracker.exceptions import Forbidden, InvalidParams, Unauthorized
+from aTES_tasks.task_tracker.exceptions import Forbidden, InvalidParams, NotFound, Unauthorized
 from aTES_tasks.task_tracker.validation import schemas
 from aTES_tasks.task_tracker.dao.dao_task import DAOTask
 
-logger = logging.getLogger('task-tracker')
 
-
-@jsonrpc_class_decorated(jsonrpc_logged(logger))
 class TaskTrackerService(CorsViewMixin, JSONRPCView):
     """
     View of a service
@@ -30,12 +27,11 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
     @property
     def _dao(self) -> DAOTask:
         return self.request.app['dao']
+    #
+    # @property
+    # def _access(self) -> AccessAioHttp:
+    #     return self.request.app['access']
 
-    @property
-    def _access(self) -> AccessAioHttp:
-        return self.request.app['access']
-
-    @validated(schemas.ECHO)
     async def rpc_echo(self, message: str) -> str:
         """
         Sample echo method
@@ -47,10 +43,9 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
             the same message
 
         """
-        self._access.authenticated(self.request)
+        # self._access.authenticated(self.request)
         return message
 
-    @validated(schemas.GET)
     async def rpc_get(self, id: str) -> dict:
         """
         Get task by id
@@ -65,10 +60,9 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
             NotFound: (-404)
 
         """
-        self._access.authenticated(self.request)
+        # self._access.authenticated(self.request)
         return await self._dao.get(id)
 
-    @validated(schemas.ADD)
     async def rpc_add(self, task: dict) -> str:
         """
         Add task
@@ -80,10 +74,9 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
             id of added entity
 
         """
-        self._access.authenticated(self.request)
+        # self._access.authenticated(self.request)
         return await self._dao.add(task)
 
-    @validated(schemas.SET)
     async def rpc_set(self, task: dict):
         """
         Change entity
@@ -92,10 +85,9 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
             task:
 
         """
-        self._access.authenticated(self.request)
+        # self._access.authenticated(self.request)
         await self._dao.set(task)
 
-    @validated(schemas.DELETE)
     async def rpc_delete(self, id):
         """
         Delete task
@@ -104,10 +96,10 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
             id:
 
         """
-        self._access.authenticated(self.request)
+        # self._access.authenticated(self.request)
         await self._dao.delete(id)
 
-    @validated(schemas.GET_COUNT_BY_FILTER)
+    # @validated(schemas.GET_COUNT_BY_FILTER)
     async def rpc_get_count_by_filter(self, filter: dict) -> int:  # pylint: disable = redefined-builtin
         """
         Get maximum count of items in filtered query
@@ -119,10 +111,10 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
             items count
 
         """
-        self._access.authenticated(self.request)
+        # self._access.authenticated(self.request)
         return await self._dao.get_count_by_filter(filter)
 
-    @validated(schemas.GET_LIST_BY_FILTER)
+    # @validated(schemas.GET_LIST_BY_FILTER)
     async def rpc_get_list_by_filter(self,
                                      filter: dict,  # pylint: disable = redefined-builtin
                                      order: List[dict],
@@ -155,10 +147,5 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
             List of dicts with entities
 
         """
-        self._access.authenticated(self.request)
+        # self._access.authenticated(self.request)
         return await self._dao.get_list_by_filter(filter, order, limit, offset)
-
-
-
-
-
