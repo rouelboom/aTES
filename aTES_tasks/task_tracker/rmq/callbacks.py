@@ -4,14 +4,14 @@ Provides callbacks for rabbitmq
 import aio_pika
 
 
-async def consume_messages(rabbitmq_component):
-    channel = await rabbitmq_component.get_channel()
-    queue = await channel.declare_queue('test')
-
-    async with queue.iterator() as queue_iter:
-        async for message in queue_iter:
-            async with message.process():
-                print("Received message:", message.body.decode())
+async def user_callback(message, data):
+    message_body = message['body']
+    print(message_body)
+    print(data)
+    # event = message_body['event']
+    # user = message_body['object']
+    # app = data
+    # print(event, user)
 
 
 async def send_message(request, rabbitmq_component):

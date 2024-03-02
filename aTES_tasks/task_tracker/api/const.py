@@ -2,7 +2,7 @@
 Constants of JSON-RPC service parameters
 """
 
-TASK_ID = 'id'
+ID = 'id'
 TASK_NAME = 'name'
 
 SIMPLE_FILTER = 'simple'

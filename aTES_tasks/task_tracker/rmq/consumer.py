@@ -27,30 +27,32 @@ class RabbitMQConsumer:
         self.callback = callback
         self.callback_data = callback_data
         self.routing_key = routing_key
-        self.connection = None
         self.channel = None
         self.exchange = None
         self.queue = None
         self.queue_name = None
+        self.consumer_tag = None
 
     async def connect(self):
         self.channel = await self.connection.channel()
         await self.channel.set_qos(prefetch_count=1)
 
-        self.exchange = await self.channel.declareexchange(
+        self.exchange = await self.channel.declare_exchange(
             self.exchange_name,
             self.exchange_type,
             durable=self.exchange_durable,
             auto_delete=self.exchange_auto_delete
         )
 
-        self.queue = await self.channel.declarequeue(
+        self.queue = await self.channel.declare_queue(
             name=self.queue_name,
             auto_delete=True,
             durable=False,
         )
         await self.queue.bind(self.exchange, routing_key=self.routing_key)
+        print('QUEUE BIND')
         self.consumer_tag = await self.queue.consume(self._on_consume_message)
+        print('QUEUE BIND-2')
 
     async def disconnect(self) -> None:
         """

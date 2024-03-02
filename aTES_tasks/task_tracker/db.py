@@ -1,29 +1,20 @@
 """
 Database objects definitions
 """
-import os
-
 from aiopg.sa import create_engine
 from sqlalchemy import MetaData, Table, Column, String, PrimaryKeyConstraint
-from dotenv import load_dotenv
-
-load_dotenv()
-
-db_host = 'localhost'
-db_name = 'task'
-credentials_login = 'postgres'
-credentials_password = 'postgres'
 
 
-async def init_engine() -> 'Engine':
+async def init_engine(db_config) -> 'Engine':
     """
     Engine initialization
     """
     return await create_engine(
-        database=db_name,
-        host=db_host,
-        user=credentials_login,
-        password=credentials_password)
+        database=db_config['name'],
+        host=db_config['host'],
+        user=db_config['user'],
+        password=db_config['password'])
+
 
 metadata = MetaData()
 

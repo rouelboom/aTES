@@ -5,11 +5,11 @@ import json
 
 from aiohttp import web
 
-from aTES_tasks.task_tracker.app import create_app
+from task_tracker.app import create_app
 
 
 if __name__ == '__main__':
-    config_file = '/Users/pavel/Dev/pets/aTES'
+    config_file = '/Users/pavel/Dev/pets/aTES/aTES_tasks/config.json'
     with open(config_file) as f:
         config = json.load(f)
     app = create_app(config=config)

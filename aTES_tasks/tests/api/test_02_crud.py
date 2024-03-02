@@ -30,7 +30,7 @@ async def test_add(service_clients):
     # ASSERT
     test_sample = await service_clients.task_tracker.get(id)
     assert test_sample == {
-        const.TASK_ID: id,
+        const.ID: id,
         **SAMPLE
     }
 
@@ -45,14 +45,14 @@ async def test_add_with_predefined_id(service_clients):
     # ACT
     id = await service_clients.task_tracker.add({
         **SAMPLE,
-        const.TASK_ID: 'id-42'
+        const.ID: 'id-42'
     })
     assert id == 'id-42'
 
     # ASSERT
     test_sample = await service_clients.task_tracker.get(id)
     assert test_sample == {
-        const.TASK_ID: id,
+        const.ID: id,
         **SAMPLE
     }
 
@@ -69,14 +69,14 @@ async def test_set(service_clients):
 
     # ACT
     await service_clients.task_tracker.set({
-        const.TASK_ID: id,
+        const.ID: id,
         const.TASK_NAME: 'Changed name'
     })
 
     # ASSERT
     test_sample = await service_clients.task_tracker.get(id)
     assert test_sample == {
-        const.TASK_ID: id,
+        const.ID: id,
         const.TASK_NAME: 'Changed name'
     }
 
@@ -143,7 +143,7 @@ async def test_get_list_by_filter__by_name(service_clients):
     # ASSERT
     assert list_1 == [{
         **SAMPLE,
-        const.TASK_ID: id,
+        const.ID: id,
     }]
     assert list_2 == []
 
@@ -161,7 +161,7 @@ async def test_get_list_by_filter__by_id(service_clients):
     # ACT
     list_1 = await service_clients.task_tracker.get_list_by_filter(
          {
-             const.TASK_ID: {
+             const.ID: {
                  'values': [id]
              }
          },
@@ -170,7 +170,7 @@ async def test_get_list_by_filter__by_id(service_clients):
 
     list_2 = await service_clients.task_tracker.get_list_by_filter(
          {
-             const.TASK_ID: {
+             const.ID: {
                  'values': ['unknown-id']
              }
          },
@@ -180,7 +180,7 @@ async def test_get_list_by_filter__by_id(service_clients):
     # ASSERT
     assert list_1 == [{
         **SAMPLE,
-        const.TASK_ID: id,
+        const.ID: id,
     }]
     assert list_2 == []
 
@@ -217,7 +217,7 @@ async def test_get_list_by_filter__simple(service_clients):
     # ASSERT
     assert list_1 == [{
         **SAMPLE,
-        const.TASK_ID: id,
+        const.ID: id,
     }]
     assert list_2 == []
 

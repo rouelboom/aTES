@@ -8,11 +8,11 @@ from typing import List
 from aiohttp_jsonrpc.handler import JSONRPCView
 from aiohttp_cors import CorsViewMixin
 
-from aTES_tasks.task_tracker.api import const
-from aTES_tasks.task_tracker.exceptions import Forbidden, InvalidParams, NotFound, Unauthorized
-from aTES_tasks.task_tracker.rmq.publisher import RabbitMQPublisher
-from aTES_tasks.task_tracker.validation import schemas
-from aTES_tasks.task_tracker.dao.dao_task import DAOTask
+from task_tracker.api import const
+from task_tracker.exceptions import Forbidden, InvalidParams, NotFound, Unauthorized
+from task_tracker.rmq.publisher import RabbitMQPublisher
+from task_tracker.validation import schemas
+from task_tracker.dao.dao_tasks import DAOTasks
 
 
 class TaskTrackerService(CorsViewMixin, JSONRPCView):
@@ -26,9 +26,8 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
         NotFound: NotFound.code,
     }
 
-
     @property
-    def _dao(self) -> DAOTask:
+    def _dao(self) -> DAOTasks:
         return self.request.app['dao']
 
     @property
@@ -38,6 +37,7 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
     # @property
     # def _access(self) -> AccessAioHttp:
     #     return self.request.app['access']
+
     @property
     def _config(self) -> dict:
         return self.request.app['config']
@@ -102,6 +102,7 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
             self._streaming_routing_key,
             json.dumps(self._message(task, const.EVENT__TASK_CREATED))
         )
+        return task_id
 
     async def rpc_set(self, task: dict):
         """
@@ -128,8 +129,8 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
 
         """
         # self._access.authenticated(self.request)
-        await self._dao.delete(id)
         task = await self._dao.get(id)
+        await self._dao.delete(id)
         await self._publisher.publish(
             self._streaming_routing_key,
             json.dumps(self._message(task, const.EVENT__TASK_DELETED))

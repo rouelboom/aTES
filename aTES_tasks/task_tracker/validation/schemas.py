@@ -16,7 +16,7 @@ ADD = {
     'task': {
         'type': 'dict',
         'schema': {
-            const.TASK_ID: {
+            const.ID: {
                 'type': 'string',
                 'coerce': 'strip'
             },
@@ -32,7 +32,7 @@ SET = {
     'task': {
         'type': 'dict',
         'schema': {
-            const.TASK_ID: {
+            const.ID: {
                 'type': 'string',
                 'coerce': 'strip',
                 'required': True
@@ -46,13 +46,13 @@ SET = {
 }
 
 GET = {
-    const.TASK_ID: {
+    const.ID: {
         'type': 'string'
     }
 }
 
 DELETE = {
-    const.TASK_ID: {
+    const.ID: {
         'type': 'string'
     }
 }
@@ -88,7 +88,7 @@ SIMPLE_FILTER = {
 }
 
 FILTER = {
-    const.TASK_ID: {
+    const.ID: {
         'type': 'dict',
         'schema': {
             'values': {

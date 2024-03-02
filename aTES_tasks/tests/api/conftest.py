@@ -48,18 +48,6 @@ def initialized_database(request, postgres_database) -> PostgresDatabaseProps:
     """
     print('Initialize database - {}'.format(postgres_database.url))
 
-
-
-
-
-
-
-
-
-
-
-
-
     print('Upgrade database schema public to head revision')
     alembic_config = alembic_config_from_url(postgres_database.url, 'public', request.config.rootdir)
     upgrade(alembic_config, 'head')
@@ -79,15 +67,6 @@ async def clear_database(config: dict):
         async with conn.begin():
             await conn.execute(Task.delete())
             # TODO add more commands to clean database
-
-
-
-
-
-
-
-
-
 
 
 # pylint: disable = too-few-public-methods

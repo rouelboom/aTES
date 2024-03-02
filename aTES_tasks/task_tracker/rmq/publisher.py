@@ -1,7 +1,9 @@
 """
 Provides tool publishing messages to rabbitmq
 """
+import asyncio
 
+import aio_pika
 from aio_pika import Message
 from aio_pika.abc import AbstractRobustConnection, DeliveryMode
 
@@ -21,13 +23,12 @@ class RabbitMQPublisher:
         self.exchange_durable = exchange_durable
         self.exchange_auto_delete = exchange_auto_delete
 
-        self.connection = None
         self.channel = None
         self.exchange = None
 
     async def connect(self):
         self.channel = await self.connection.channel()
-        self.exchange = await self.channel.declareexchange(
+        self.exchange = await self.channel.declare_exchange(
             self.exchange_name,
             self.exchange_type,
             durable=self.exchange_durable,
@@ -64,7 +65,7 @@ class RabbitMQPublisher:
             correlation_id=correlation_id,
             delivery_mode=DeliveryMode.PERSISTENT if persistent else DeliveryMode.NOT_PERSISTENT
         )
-
+        print('routing_key = ', routing_key)
         await self.exchange.publish(
             message,
             routing_key=routing_key,

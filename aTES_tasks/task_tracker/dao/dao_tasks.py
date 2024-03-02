@@ -7,13 +7,13 @@ import uuid
 import sqlalchemy
 from sqlalchemy import func
 
-from aTES_tasks.task_tracker.api import const
-from aTES_tasks.task_tracker.exceptions import NotFound
-from aTES_tasks.task_tracker.db import Task
-from aTES_tasks.task_tracker.dao.filters import make_string_filter
+from task_tracker.api import const
+from task_tracker.exceptions import NotFound
+from task_tracker.db import Task
+from task_tracker.dao.filters import make_string_filter
 
 
-class DAOTask:
+class DAOTasks:
     """
     DAO for 'task' table
     """
@@ -21,17 +21,17 @@ class DAOTask:
         self.engine = engine
 
     async def _add(self, conn, obj: dict) -> str:
-        if const.TASK_ID not in obj:
-            obj[const.TASK_ID] = uuid.uuid4().hex
+        if const.ID not in obj:
+            obj[const.ID] = uuid.uuid4().hex
         await conn.execute(
             Task.insert().values(**obj)
         )
-        return obj[const.TASK_ID]
+        return obj[const.ID]
 
     async def _set(self, conn, obj: dict) -> None:
         await conn.execute(
             Task.update().values(**obj).
-            where(Task.c.id == obj[const.TASK_ID])
+            where(Task.c.id == obj[const.ID])
         )
 
     async def _delete(self, conn, object_id: str):
@@ -49,8 +49,8 @@ class DAOTask:
     def _filtered_query(self, query, filter_: dict):
         if const.TASK_NAME in filter_:
             query = query.where(make_string_filter(Task.c.name, filter_[const.TASK_NAME]))
-        if const.TASK_ID in filter_:
-            values = filter_[const.TASK_ID]['values']
+        if const.ID in filter_:
+            values = filter_[const.ID]['values']
             query = query.where(Task.c.id.in_(values))
         return query
 

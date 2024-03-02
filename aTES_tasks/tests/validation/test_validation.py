@@ -41,7 +41,7 @@ TEST_DATA_ADD = [
     (
         {
             'task': {
-                const.TASK_ID: 'some-id',
+                const.ID: 'some-id',
                 const.TASK_NAME: 'Name'
             }
         },
@@ -58,20 +58,20 @@ TEST_DATA_ADD = [
     (
         {
             'task': {
-                const.TASK_ID: 42,
+                const.ID: 42,
                 const.TASK_NAME: 'Name'
             }
         },
         {
             'task': [{
-                const.TASK_ID: ANYTHING
+                const.ID: ANYTHING
             }]
         }
     ),
     (
         {
             'task': {
-                const.TASK_ID: 'some-id',
+                const.ID: 'some-id',
                 const.TASK_NAME: 42
             }
         },
@@ -100,7 +100,7 @@ TEST_DATA_SET = [
     (
         {
             'task': {
-                const.TASK_ID: 'some-id',
+                const.ID: 'some-id',
                 const.TASK_NAME: 'Name'
             }
         },
@@ -114,27 +114,27 @@ TEST_DATA_SET = [
         },
         {
             'task': [{
-                const.TASK_ID: ANYTHING
+                const.ID: ANYTHING
             }]
         }
     ),
     (
         {
             'task': {
-                const.TASK_ID: 42,
+                const.ID: 42,
                 const.TASK_NAME: 'Name'
             }
         },
         {
             'task': [{
-                const.TASK_ID: ANYTHING
+                const.ID: ANYTHING
             }]
         }
     ),
     (
         {
             'task': {
-                const.TASK_ID: 'some-id',
+                const.ID: 'some-id',
                 const.TASK_NAME: 42
             }
         },
@@ -223,7 +223,7 @@ TEST_DATA_GET_COUNT_BY_FILTER = [
     (
         {
             'filter': {
-                const.TASK_ID: {
+                const.ID: {
                     'values': ['id-1', 'id-2']
                 }
             }
@@ -253,14 +253,14 @@ TEST_DATA_GET_COUNT_BY_FILTER = [
     (
         {
             'filter': {
-                const.TASK_ID: {
+                const.ID: {
                     'values': [41, 42]
                 }
             }
         },
         {
             'filter': [{
-                const.TASK_ID: ANYTHING
+                const.ID: ANYTHING
             }]
         }
     ),
@@ -320,7 +320,7 @@ TEST_DATA_GET_LIST_BY_FILTER = [
     (
         {
             'filter': {
-                const.TASK_ID: {
+                const.ID: {
                     'values': ['id-1', 'id-2']
                 }
             },

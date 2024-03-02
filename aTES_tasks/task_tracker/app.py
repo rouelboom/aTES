@@ -1,22 +1,27 @@
 """
 Application factory module
 """
-import asyncio
 from asyncio import AbstractEventLoop
-from concurrent.futures import ThreadPoolExecutor
-import logging
-import logging.config
 
 import aio_pika
 from aiohttp import web
 import aiohttp_cors
 
 
-from aTES_tasks.task_tracker.db import init_engine
-from aTES_tasks.task_tracker.dao.dao_task import DAOTask
+from task_tracker.db import init_engine
+from task_tracker.dao.dao_tasks import DAOTasks
 
-from aTES_tasks.task_tracker.api.tasks import TaskTrackerService
-from aTES_tasks.task_tracker.rmq.publisher import RabbitMQPublisher
+from task_tracker.api.tasks import TaskTrackerService
+from task_tracker.rmq.callbacks import user_callback
+from task_tracker.rmq.consumer import RabbitMQConsumer
+from task_tracker.rmq.publisher import RabbitMQPublisher
+
+
+async def event_callback(message, data):
+    print(message)
+    body = message['body']
+    print(body)
+    print(data)
 
 
 async def on_app_start(app):
@@ -26,17 +31,18 @@ async def on_app_start(app):
     assert 'config' in app
     config = app['config']
 
-    engine = await init_engine()
+    engine = await init_engine(config['database'])
     app['engine'] = engine
 
     rabbitmq_config = config['rabbitmq']
 
-    rabbitmq_url = 'amqp://{}:{}@{}/'.format(
-        rabbitmq_config["login"],
-        rabbitmq_config["password"],
-        rabbitmq_config["host"]
+    rabbit_connection = await aio_pika.connect_robust(
+        host=rabbitmq_config["host"],
+        port=rabbitmq_config["port"],
+        login=rabbitmq_config["login"],
+        password=rabbitmq_config["password"]
     )
-    rabbit_connection = await aio_pika.connect_robust(rabbitmq_url)
+
     app['rabbit_connection'] = rabbit_connection
     task_publisher = RabbitMQPublisher(
         rabbit_connection,
@@ -46,14 +52,26 @@ async def on_app_start(app):
     await task_publisher.connect()
     app['task_publisher'] = task_publisher
 
-    app['dao'] = DAOTask(engine)
+    task_consumer = RabbitMQConsumer(
+        rabbit_connection,
+        exchange_name=config['exchanges']['task_streaming']['name'],
+        exchange_type=config['exchanges']['task_streaming']['type'],
+        routing_key='*.task',  # streaming.task, or streaming.user in case of users
+        callback=user_callback,
+        callback_data=app
+    )
+    await task_consumer.connect()
+    app['task_consumer'] = task_consumer
+
+    app['dao'] = DAOTasks(engine)
 
 
 async def on_app_stop(app):
     """
     Stop tasks on application destroy
     """
-    await app['common_exchange_publisher'].close()
+    await app['rabbit_connection'].close()
+    await app['task_publisher'].disconnect()
 
     app['engine'].close()
     await app['engine'].wait_closed()
@@ -88,7 +106,6 @@ def create_app(loop: AbstractEventLoop = None, config: dict = None) -> web.Appli
     cors.add(app.router.add_route('*', '/jsonrpc/tasks', TaskTrackerService))
 
     app['config'] = config
-    logging.config.dictConfig(config['logging'])
 
     app.on_startup.append(on_app_start)
     app.on_shutdown.append(on_app_stop)
