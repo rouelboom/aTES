@@ -13,7 +13,7 @@ from task_tracker.db import User
 from task_tracker.dao.filters import make_string_filter
 
 
-class DAOUser:
+class DAOUsers:
     """
     DAO for 'task' table
     """
@@ -21,11 +21,13 @@ class DAOUser:
         self.engine = engine
 
     async def _add(self, conn, obj: dict) -> str:
+        print(123)
         if const.ID not in obj:
             obj[const.ID] = uuid.uuid4().hex
         await conn.execute(
             User.insert().values(**obj)
         )
+        print(333)
         return obj[const.ID]
 
     async def _set(self, conn, obj: dict) -> None:

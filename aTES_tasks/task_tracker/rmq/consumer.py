@@ -50,9 +50,7 @@ class RabbitMQConsumer:
             durable=False,
         )
         await self.queue.bind(self.exchange, routing_key=self.routing_key)
-        print('QUEUE BIND')
         self.consumer_tag = await self.queue.consume(self._on_consume_message)
-        print('QUEUE BIND-2')
 
     async def disconnect(self) -> None:
         """
@@ -80,5 +78,6 @@ class RabbitMQConsumer:
                     await self.callback(message_dict)
 
             await incoming_message.ack()
-        except Exception:  # pylint: disable = broad-except
+        except Exception as e:  # pylint: disable = broad-except
+            print(e)
             await incoming_message.nack()

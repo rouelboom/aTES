@@ -28,7 +28,7 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
 
     @property
     def _dao(self) -> DAOTasks:
-        return self.request.app['dao']
+        return self.request.app['dao_tasks']
 
     @property
     def _publisher(self) -> RabbitMQPublisher:

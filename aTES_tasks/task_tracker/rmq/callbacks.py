@@ -1,27 +1,32 @@
 """
 Provides callbacks for rabbitmq
 """
-import aio_pika
+import json
+
+from task_tracker.api import const
 
 
 async def user_callback(message, data):
-    message_body = message['body']
-    print(message_body)
-    print(data)
-    # event = message_body['event']
-    # user = message_body['object']
-    # app = data
-    # print(event, user)
+    message_body = json.loads(message['body'])
+    app = data
+    obj = message_body['object']
+    event = message_body['event']
+    print('event: ', event)
 
-
-async def send_message(request, rabbitmq_component):
-    data = await request.json()
-
-    channel = await rabbitmq_component.get_channel()
-
-    await channel.default_exchange.publish(
-        aio_pika.Message(body=str(data).encode()),
-        routing_key='all_events'
-    )
-
-    # return web.Response(text="Message sent to 'all_events' exchange")
+    if event == const.EVENT__USER_CREATED:
+        await app['dao_users'].add({
+            'id': obj['id'],
+            'login': obj['name'],
+            'role': obj['description']
+        })
+        return
+    if event == const.EVENT__USER_UPDATED:
+        await app['dao_users'].set({
+            'id': obj['id'],
+            'login': obj['name'],
+            'role': obj['description']
+        })
+        return
+    if event == const.EVENT__USER_DELETED:
+        await app['dao_users'].delete(obj['id'])
+        return
