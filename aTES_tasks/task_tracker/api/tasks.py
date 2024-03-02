@@ -33,10 +33,6 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
     @property
     def _publisher(self) -> RabbitMQPublisher:
         return self.request.app['task_publisher']
-    #
-    # @property
-    # def _access(self) -> AccessAioHttp:
-    #     return self.request.app['access']
 
     @property
     def _config(self) -> dict:
@@ -45,6 +41,10 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
     @property
     def _streaming_routing_key(self):
         return self._config['exchanges']['task_streaming']['name']
+
+    @property
+    def _status_changed_routing_key(self):
+        return self._config['exchanges']['task_status_change']['name']
 
     @staticmethod
     def _message(obj: dict, event: str):
@@ -64,7 +64,6 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
             the same message
 
         """
-        # self._access.authenticated(self.request)
         return message
 
     async def rpc_get(self, id: str) -> dict:
@@ -81,7 +80,6 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
             NotFound: (-404)
 
         """
-        # self._access.authenticated(self.request)
         return await self._dao.get(id)
 
     async def rpc_add(self, task: dict) -> str:
@@ -95,7 +93,6 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
             id of added entity
 
         """
-        # self._access.authenticated(self.request)
         task_id = await self._dao.add(task)
         task = await self._dao.get(task_id)
         await self._publisher.publish(
@@ -112,7 +109,6 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
             task:
 
         """
-        # self._access.authenticated(self.request)
         await self._dao.set(task)
         task = await self._dao.get(task['id'])
         await self._publisher.publish(
@@ -128,7 +124,6 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
             id:
 
         """
-        # self._access.authenticated(self.request)
         task = await self._dao.get(id)
         await self._dao.delete(id)
         await self._publisher.publish(
@@ -148,7 +143,6 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
             items count
 
         """
-        # self._access.authenticated(self.request)
         return await self._dao.get_count_by_filter(filter)
 
     # @validated(schemas.GET_LIST_BY_FILTER)
@@ -184,5 +178,4 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
             List of dicts with entities
 
         """
-        # self._access.authenticated(self.request)
         return await self._dao.get_list_by_filter(filter, order, limit, offset)
