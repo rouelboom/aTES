@@ -12,6 +12,9 @@ EVENT__TASK_CREATED = 'task.created'
 EVENT__TASK_UPDATED = 'task.updated'
 EVENT__TASK_DELETED = 'task.deleted'
 
+EVENT__TASK_STATUS_CHANGED = 'task.status.changed'
+EVENT__TASK_WORKER_CHANGED = 'task.worker.changed'
+
 EVENT__USER_CREATED = 'user.created'
 EVENT__USER_UPDATED = 'user.updated'
 EVENT__USER_DELETED = 'user.deleted'
@@ -31,3 +34,4 @@ ROLE = 'role'
 
 USER_ROLE__ADMIN = 'popug_admin'
 USER_ROLE__WORKER = 'popug_worker'
+USER_ROLE__MANAGER = 'popug_manager'

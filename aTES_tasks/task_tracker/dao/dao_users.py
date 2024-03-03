@@ -22,13 +22,11 @@ class DAOUsers:
         self.engine = engine
 
     async def _add(self, conn, obj: dict) -> str:
-        print(123)
         if const.ID not in obj:
             obj[const.ID] = uuid.uuid4().hex
         await conn.execute(
             User.insert().values(**obj)
         )
-        print(333)
         return obj[const.ID]
 
     async def _set(self, conn, obj: dict) -> None:
@@ -112,6 +110,19 @@ class DAOUsers:
 
     async def get_list_by_filter(self, filter_: dict, order: List[dict], limit: int, offset: int) -> List[dict]:
         async with self.engine.acquire() as conn:
+            return await self._get_list_by_filter(conn, filter_, order, limit, offset)
+
+    async def get_all_workers(self):
+        async with self.engine.acquire() as conn:
+            # we need to set real limits in future
+            filter_ = {
+                const.ROLE: {
+                    'values': [const.USER_ROLE__WORKER, ]
+                }
+            }
+            order = []
+            limit = 1000
+            offset = 0
             return await self._get_list_by_filter(conn, filter_, order, limit, offset)
 
     async def get_random_user_id(self) -> dict:

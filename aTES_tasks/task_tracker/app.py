@@ -45,16 +45,24 @@ async def on_app_start(app):
     await task_publisher.connect()
     app['task_publisher'] = task_publisher
 
-    task_consumer = RabbitMQConsumer(
+    business_event_publisher = RabbitMQPublisher(
+        rabbit_connection,
+        exchange_name=config['exchanges']['task_business_events']['name'],
+        exchange_type=config['exchanges']['task_business_events']['type']
+    )
+    await business_event_publisher.connect()
+    app['business_event_publisher'] = business_event_publisher
+
+    user_consumer = RabbitMQConsumer(
         rabbit_connection,
         exchange_name=config['exchange_subscriptions']['user_streaming'],
         exchange_type='topic',
-        routing_key='*.user',  # streaming.task, or streaming.user in case of users
+        routing_key='*.user',
         callback=user_callback,
         callback_data=app
     )
-    await task_consumer.connect()
-    app['task_consumer'] = task_consumer
+    await user_consumer.connect()
+    app['user_consumer'] = user_consumer
 
     app['dao_tasks'] = DAOTasks(engine)
     app['dao_users'] = DAOUsers(engine)
@@ -66,6 +74,8 @@ async def on_app_stop(app):
     """
     await app['rabbit_connection'].close()
     await app['task_publisher'].disconnect()
+    await app['user_consumer'].disconnect()
+    await app['business_event_publisher'].disconnect()
 
     app['engine'].close()
     await app['engine'].wait_closed()

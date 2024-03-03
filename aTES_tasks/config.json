@@ -20,8 +20,8 @@
             "name": "streaming.task",
             "type": "topic"
         },
-        "task_status_change": {
-            "name": "changed.task.status",
+        "task_business_events": {
+            "name": "business_events.task",
             "type": "topic"
         }
     },

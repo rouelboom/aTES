@@ -1,8 +1,10 @@
 """
 Implementation of a service
 """
+from datetime import datetime
 import json
 import logging
+import random
 from typing import List
 
 from aiohttp_jsonrpc.handler import JSONRPCView
@@ -36,8 +38,12 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
         return self.request.app['dao_users']
 
     @property
-    def _publisher(self) -> RabbitMQPublisher:
+    def _task_publisher(self) -> RabbitMQPublisher:
         return self.request.app['task_publisher']
+
+    @property
+    def _business_event_publisher(self) -> RabbitMQPublisher:
+        return self.request.app['business_event_publisher']
 
     @property
     def _config(self) -> dict:
@@ -48,14 +54,15 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
         return self._config['exchanges']['task_streaming']['name']
 
     @property
-    def _task_status_changed_routing_key(self):
-        return self._config['exchanges']['task_status_change']['name']
+    def _business_events_routing_key(self):
+        return self._config['exchanges']['task_business_events']['name']
 
     @staticmethod
     def _message(obj: dict, event: str):
         return {
             'event': event,
-            'object': obj
+            'object': obj,
+            'event_date': datetime.now()
         }
 
     def _authenticated(self):
@@ -63,6 +70,7 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
         Raises
         """
         # todo write it after finishing accounts service
+        # в теории, тут надо вернуть токен. из которого можно будет получить идентификатор пользователя
         if False:
             raise Exception
         # return token_payload
@@ -125,12 +133,12 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
             const.ASSIGNED_WORKER: assigned_worker_id,
             const.STATUS: const.TASK_STATUS__IN_PROGRESS
         }
-        await self._publisher.publish(
+        await self._task_publisher.publish(
             self._streaming_routing_key,
             json.dumps(self._message(task, const.EVENT__TASK_CREATED))
         )
-        await self._publisher.publish(
-            self._task_status_changed_routing_key,
+        await self._task_publisher.publish(
+            self._business_events_routing_key,
             json.dumps(self._message(task, const.EVENT__TASK_CREATED))
         )
         return task_id
@@ -151,7 +159,7 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
 
         await self._dao_tasks.set(task)
         task = await self._dao_tasks.get(task[const.ID])
-        await self._publisher.publish(
+        await self._task_publisher.publish(
             self._streaming_routing_key,
             json.dumps(self._message(task, const.EVENT__TASK_UPDATED))
         )
@@ -179,10 +187,37 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
                 const.STATUS: const.TASK_STATUS__FINISHED
             }
         )
-        await self._publisher.publish(
-            self._task_status_changed_routing_key,
+        await self._business_event_publisher.publish(
+            self._business_events_routing_key,
             json.dumps(self._message(task, const.EVENT__TASK_UPDATED))
         )
+
+    async def shuffle(self):
+        """
+        Shuffles all not finished task between all employees (not admins and not managers)
+        """
+        workers = await self._dao_users.get_all_workers()
+        if not workers:
+            print('Workers for tasks not found!')
+            raise NotFound('Workers for tasks not found')
+
+        not_finished_tasks = await self._dao_tasks.get_not_finished_tasks()
+        workers_count = len(workers) - 1
+
+        for task in not_finished_tasks:
+            random_index = random.randint(0, workers_count)
+            task[const.ASSIGNED_WORKER] = workers[random_index][const.ID]
+            await self._dao_tasks.set(task)
+            # task streaming
+            await self._task_publisher.publish(
+                self._streaming_routing_key,
+                json.dumps(self._message(task, const.EVENT__TASK_UPDATED))
+            )
+            # business event - worker changed
+            await self._business_event_publisher.publish(
+                self._business_events_routing_key,
+                json.dumps(self._message(task, const.EVENT__TASK_WORKER_CHANGED))
+            )
 
     async def rpc_delete(self, id):
         """
@@ -195,12 +230,11 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
         self._authenticated()
         task = await self._dao_tasks.get(id)
         await self._dao_tasks.delete(id)
-        await self._publisher.publish(
+        await self._task_publisher.publish(
             self._streaming_routing_key,
             json.dumps(self._message(task, const.EVENT__TASK_DELETED))
         )
 
-    # @validated(schemas.GET_COUNT_BY_FILTER)
     async def rpc_get_count_by_filter(self, filter: dict) -> int:  # pylint: disable = redefined-builtin
         """
         Get maximum count of items in filtered query
@@ -215,7 +249,6 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
         self._authenticated()
         return await self._dao_tasks.get_count_by_filter(filter)
 
-    # @validated(schemas.GET_LIST_BY_FILTER)
     async def rpc_get_list_by_filter(self,
                                      filter: dict,  # pylint: disable = redefined-builtin
                                      order: List[dict],
