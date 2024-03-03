@@ -1,8 +1,11 @@
 """
 Validation schemas
 """
-from task_tracker.api import const
+from typing import Dict
 
+from cerberus import Validator
+
+from task_tracker.api import const
 
 
 ECHO = {
@@ -13,35 +16,33 @@ ECHO = {
 
 
 ADD = {
-    'task': {
-        'type': 'dict',
-        'schema': {
-            const.ID: {
-                'type': 'string',
-                'coerce': 'strip'
-            },
-            const.TASK_NAME: {
-                'type': 'string',
-                'coerce': 'strip'
-            }
-        }
+    const.ID: {
+        'type': 'string',
+        'coerce': 'strip'
+    },
+    const.TASK_NAME: {
+        'type': 'string',
+        'coerce': 'strip'
+    },
+    const.DESCRIPTION: {
+        'type': 'string',
+        'coerce': 'strip'
     }
 }
 
 SET = {
-    'task': {
-        'type': 'dict',
-        'schema': {
-            const.ID: {
-                'type': 'string',
-                'coerce': 'strip',
-                'required': True
-            },
-            const.TASK_NAME: {
-                'type': 'string',
-                'coerce': 'strip'
-            }
-        }
+    const.ID: {
+        'type': 'string',
+        'coerce': 'strip',
+        'required': True
+    },
+    const.TASK_NAME: {
+        'type': 'string',
+        'coerce': 'strip'
+    },
+    const.DESCRIPTION: {
+        'type': 'string',
+        'coerce': 'strip'
     }
 }
 
@@ -152,4 +153,17 @@ GET_LIST_BY_FILTER = {
     }
 }
 
+
+def validate_task(obj: dict, schema: dict) -> Dict[str, list]:
+    """
+    Validate
+
+    Returns:
+        A dict with errors. Empty when no errors were detected
+    """
+
+    validator = Validator(schema)
+    validator.validate(obj)
+
+    return validator.errors
 

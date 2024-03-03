@@ -22,5 +22,12 @@ DESCRIPTION = 'description'
 STATUS = 'status'
 ASSIGNED_WORKER = 'assigned_worker'
 
+TASK_STATUS__FINISHED = 'finished'
+TASK_STATUS__OPENED = 'opened'
+TASK_STATUS__IN_PROGRESS = 'in_progress'
+
 LOGIN = 'login'
 ROLE = 'role'
+
+USER_ROLE__ADMIN = 'popug_admin'
+USER_ROLE__WORKER = 'popug_worker'

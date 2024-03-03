@@ -11,7 +11,6 @@ async def user_callback(message, data):
     app = data
     obj = message_body['object']
     event = message_body['event']
-    print('event: ', event)
 
     if event == const.EVENT__USER_CREATED:
         await app['dao_users'].add({

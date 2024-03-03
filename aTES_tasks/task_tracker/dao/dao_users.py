@@ -1,6 +1,7 @@
 """
 Manipulate in database with Entity of Scaffolded application
 """
+import random
 from typing import List
 import uuid
 
@@ -112,3 +113,18 @@ class DAOUsers:
     async def get_list_by_filter(self, filter_: dict, order: List[dict], limit: int, offset: int) -> List[dict]:
         async with self.engine.acquire() as conn:
             return await self._get_list_by_filter(conn, filter_, order, limit, offset)
+
+    async def get_random_user_id(self) -> dict:
+        async with self.engine.acquire() as conn:
+            # now its request that gets all users from table
+            # in future we need to set limits
+            filter_ = {}  # means that there are no filtration (return all users)
+            order = []
+            limit = 1000
+            offset = 0
+            all_users = await self._get_list_by_filter(conn, filter_, order, limit, offset)
+            if not all_users:
+                raise NotFound
+            users_count = len(all_users)
+            user_index = random.randint(0, users_count - 1)
+            return all_users[user_index]

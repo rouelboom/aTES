@@ -14,3 +14,4 @@ SQLAlchemy-Utils
 
 aio-pika
 python-dotenv
+Cerberus

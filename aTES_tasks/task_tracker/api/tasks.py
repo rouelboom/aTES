@@ -9,6 +9,7 @@ from aiohttp_jsonrpc.handler import JSONRPCView
 from aiohttp_cors import CorsViewMixin
 
 from task_tracker.api import const
+from task_tracker.dao.dao_users import DAOUsers
 from task_tracker.exceptions import Forbidden, InvalidParams, NotFound, Unauthorized
 from task_tracker.rmq.publisher import RabbitMQPublisher
 from task_tracker.validation import schemas
@@ -27,8 +28,12 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
     }
 
     @property
-    def _dao(self) -> DAOTasks:
+    def _dao_tasks(self) -> DAOTasks:
         return self.request.app['dao_tasks']
+
+    @property
+    def _dao_users(self) -> DAOUsers:
+        return self.request.app['dao_users']
 
     @property
     def _publisher(self) -> RabbitMQPublisher:
@@ -43,7 +48,7 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
         return self._config['exchanges']['task_streaming']['name']
 
     @property
-    def _status_changed_routing_key(self):
+    def _task_status_changed_routing_key(self):
         return self._config['exchanges']['task_status_change']['name']
 
     @staticmethod
@@ -52,6 +57,15 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
             'event': event,
             'object': obj
         }
+
+    def _authenticated(self):
+        """
+        Raises
+        """
+        # todo write it after finishing accounts service
+        if False:
+            raise Exception
+        # return token_payload
 
     async def rpc_echo(self, message: str) -> str:
         """
@@ -80,7 +94,7 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
             NotFound: (-404)
 
         """
-        return await self._dao.get(id)
+        return await self._dao_tasks.get(id)
 
     async def rpc_add(self, task: dict) -> str:
         """
@@ -93,10 +107,30 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
             id of added entity
 
         """
-        task_id = await self._dao.add(task)
-        task = await self._dao.get(task_id)
+        self._authenticated()
+
+        errors = schemas.validate_task(task, schemas.ADD)
+        if errors:
+            raise InvalidParams
+
+        task_id = await self._dao_tasks.add(task)
+        task = await self._dao_tasks.get(task_id)
+        try:
+            assigned_worker_id = await self._dao_users.get_random_user_id()
+        except NotFound as e:
+            print('User for task not found')
+            raise NotFound from e
+        task = {
+            **task,
+            const.ASSIGNED_WORKER: assigned_worker_id,
+            const.STATUS: const.TASK_STATUS__IN_PROGRESS
+        }
         await self._publisher.publish(
             self._streaming_routing_key,
+            json.dumps(self._message(task, const.EVENT__TASK_CREATED))
+        )
+        await self._publisher.publish(
+            self._task_status_changed_routing_key,
             json.dumps(self._message(task, const.EVENT__TASK_CREATED))
         )
         return task_id
@@ -109,10 +143,44 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
             task:
 
         """
-        await self._dao.set(task)
-        task = await self._dao.get(task['id'])
+        self._authenticated()
+
+        errors = schemas.validate_task(task, schemas.SET)
+        if errors:
+            raise InvalidParams
+
+        await self._dao_tasks.set(task)
+        task = await self._dao_tasks.get(task[const.ID])
         await self._publisher.publish(
             self._streaming_routing_key,
+            json.dumps(self._message(task, const.EVENT__TASK_UPDATED))
+        )
+
+    async def rpc_task_finished(self, task_id: str):
+        """
+        Set task's status to 'finished'
+
+        Args:
+            task_id: ID of task
+
+        """
+        self._authenticated()
+        # token_payload = self._authenticated()
+        # в теории, тут надо из токена получить id пользователя и сравнить его с
+        # id работника, на которого назначена задача
+        task = await self._dao_tasks.get(task_id)
+        # user_id = token_payload['user_id']
+        # if user_id != const.USER_ROLE__ADMIN and user_id != task[const.ASSIGNED_WORKER]:
+        #     raise Forbidden
+
+        await self._dao_tasks.set(
+            {
+                const.ID: task_id,
+                const.STATUS: const.TASK_STATUS__FINISHED
+            }
+        )
+        await self._publisher.publish(
+            self._task_status_changed_routing_key,
             json.dumps(self._message(task, const.EVENT__TASK_UPDATED))
         )
 
@@ -124,8 +192,9 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
             id:
 
         """
-        task = await self._dao.get(id)
-        await self._dao.delete(id)
+        self._authenticated()
+        task = await self._dao_tasks.get(id)
+        await self._dao_tasks.delete(id)
         await self._publisher.publish(
             self._streaming_routing_key,
             json.dumps(self._message(task, const.EVENT__TASK_DELETED))
@@ -143,7 +212,8 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
             items count
 
         """
-        return await self._dao.get_count_by_filter(filter)
+        self._authenticated()
+        return await self._dao_tasks.get_count_by_filter(filter)
 
     # @validated(schemas.GET_LIST_BY_FILTER)
     async def rpc_get_list_by_filter(self,
@@ -178,4 +248,5 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
             List of dicts with entities
 
         """
-        return await self._dao.get_list_by_filter(filter, order, limit, offset)
+        self._authenticated()
+        return await self._dao_tasks.get_list_by_filter(filter, order, limit, offset)
