@@ -39,7 +39,7 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
 
     @property
     def _task_publisher(self) -> RabbitMQPublisher:
-        return self.request.app['task_publisher']
+        return self.request.app['task_streaming_publisher']
 
     @property
     def _business_event_publisher(self) -> RabbitMQPublisher:

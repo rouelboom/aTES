@@ -28,7 +28,6 @@ async def on_app_start(app):
     app['engine'] = engine
 
     rabbitmq_config = config['rabbitmq']
-
     rabbit_connection = await aio_pika.connect_robust(
         host=rabbitmq_config["host"],
         port=rabbitmq_config["port"],
@@ -43,7 +42,7 @@ async def on_app_start(app):
         exchange_type=config['exchanges']['task_streaming']['type']
     )
     await task_publisher.connect()
-    app['task_publisher'] = task_publisher
+    app['task_streaming_publisher'] = task_publisher
 
     business_event_publisher = RabbitMQPublisher(
         rabbit_connection,
@@ -73,7 +72,7 @@ async def on_app_stop(app):
     Stop tasks on application destroy
     """
     await app['rabbit_connection'].close()
-    await app['task_publisher'].disconnect()
+    await app['task_streaming_publisher'].disconnect()
     await app['user_consumer'].disconnect()
     await app['business_event_publisher'].disconnect()
 
