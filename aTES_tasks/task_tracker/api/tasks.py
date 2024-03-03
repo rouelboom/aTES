@@ -3,7 +3,6 @@ Implementation of a service
 """
 from datetime import datetime
 import json
-import logging
 import random
 from typing import List
 
@@ -121,8 +120,6 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
         if errors:
             raise InvalidParams
 
-        task_id = await self._dao_tasks.add(task)
-        task = await self._dao_tasks.get(task_id)
         try:
             assigned_worker_id = await self._dao_users.get_random_user_id()
         except NotFound as e:
@@ -133,6 +130,10 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
             const.ASSIGNED_WORKER: assigned_worker_id,
             const.STATUS: const.TASK_STATUS__IN_PROGRESS
         }
+
+        task_id = await self._dao_tasks.add(task)
+        task = await self._dao_tasks.get(task_id)
+
         await self._task_publisher.publish(
             self._streaming_routing_key,
             json.dumps(self._message(task, const.EVENT__TASK_CREATED))
