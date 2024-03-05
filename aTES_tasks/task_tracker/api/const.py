@@ -5,19 +5,19 @@ Constants of JSON-RPC service parameters
 ID = 'id'
 TASK_NAME = 'name'
 
-SIMPLE_FILTER = 'simple'
-SIMPLE_FILTER_QUERY = 'query'
+# BUSINESS EVENTS
+# вероятно я так и не понял, как правильно называть бизнес ивенты
+# в данном случае у нас имя exchange - workflow
+EVENT__TASK_ASSIGNED = 'task.assigned'
+EVENT__TASK_FINISHED = 'task.finished'
 
-EVENT__TASK_CREATED = 'task.created'
-EVENT__TASK_UPDATED = 'task.updated'
-EVENT__TASK_DELETED = 'task.deleted'
+# STREAMING EVENTS
+EVENT__TASK_CREATED = 'created'
+EVENT__TASK_UPDATED = 'updated'
 
-EVENT__TASK_STATUS_CHANGED = 'task.status.changed'
-EVENT__TASK_WORKER_CHANGED = 'task.worker.changed'
-
-EVENT__USER_CREATED = 'user.created'
-EVENT__USER_UPDATED = 'user.updated'
-EVENT__USER_DELETED = 'user.deleted'
+EVENT__USER_CREATED = 'created'
+EVENT__USER_UPDATED = 'updated'
+EVENT__USER_DELETED = 'deleted'
 
 
 NAME = 'name'

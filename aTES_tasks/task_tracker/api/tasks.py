@@ -5,6 +5,7 @@ from datetime import datetime
 import json
 import random
 from typing import List
+import uuid
 
 from aiohttp_jsonrpc.handler import JSONRPCView
 from aiohttp_cors import CorsViewMixin
@@ -41,8 +42,8 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
         return self.request.app['task_streaming_publisher']
 
     @property
-    def _business_event_publisher(self) -> RabbitMQPublisher:
-        return self.request.app['business_event_publisher']
+    def _workflow_event_publisher(self) -> RabbitMQPublisher:
+        return self.request.app['workflow_event_publisher']
 
     @property
     def _config(self) -> dict:
@@ -53,12 +54,13 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
         return self._config['exchanges']['task_streaming']['name']
 
     @property
-    def _business_events_routing_key(self):
-        return self._config['exchanges']['task_business_events']['name']
+    def _workflow_routing_key(self):
+        return self._config['exchanges']['workflow']['name']
 
     @staticmethod
     def _message(obj: dict, event: str):
         return {
+            'event_id': uuid.uuid4().hex,
             'event': event,
             'object': obj,
             'event_date': datetime.now()
@@ -139,31 +141,10 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
             json.dumps(self._message(task, const.EVENT__TASK_CREATED))
         )
         await self._task_publisher.publish(
-            self._business_events_routing_key,
-            json.dumps(self._message(task, const.EVENT__TASK_CREATED))
+            self._workflow_routing_key,
+            json.dumps(self._message(task, const.EVENT__TASK_ASSIGNED))
         )
         return task_id
-
-    async def rpc_set(self, task: dict):
-        """
-        Change entity
-
-        Args:
-            task:
-
-        """
-        self._authenticated()
-
-        errors = schemas.validate_task(task, schemas.SET)
-        if errors:
-            raise InvalidParams
-
-        await self._dao_tasks.set(task)
-        task = await self._dao_tasks.get(task[const.ID])
-        await self._task_publisher.publish(
-            self._streaming_routing_key,
-            json.dumps(self._message(task, const.EVENT__TASK_UPDATED))
-        )
 
     async def rpc_task_finished(self, task_id: str):
         """
@@ -188,9 +169,10 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
                 const.STATUS: const.TASK_STATUS__FINISHED
             }
         )
-        await self._business_event_publisher.publish(
-            self._business_events_routing_key,
-            json.dumps(self._message(task, const.EVENT__TASK_UPDATED))
+
+        await self._workflow_event_publisher.publish(
+            self._workflow_routing_key,
+            json.dumps(self._message(task, const.EVENT__TASK_FINISHED))
         )
 
     async def shuffle(self):
@@ -215,26 +197,10 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
                 json.dumps(self._message(task, const.EVENT__TASK_UPDATED))
             )
             # business event - worker changed
-            await self._business_event_publisher.publish(
-                self._business_events_routing_key,
-                json.dumps(self._message(task, const.EVENT__TASK_WORKER_CHANGED))
+            await self._workflow_event_publisher.publish(
+                self._workflow_routing_key,
+                json.dumps(self._message(task, const.EVENT__TASK_ASSIGNED))
             )
-
-    async def rpc_delete(self, id):
-        """
-        Delete task
-
-        Args:
-            id:
-
-        """
-        self._authenticated()
-        task = await self._dao_tasks.get(id)
-        await self._dao_tasks.delete(id)
-        await self._task_publisher.publish(
-            self._streaming_routing_key,
-            json.dumps(self._message(task, const.EVENT__TASK_DELETED))
-        )
 
     async def rpc_get_count_by_filter(self, filter: dict) -> int:  # pylint: disable = redefined-builtin
         """

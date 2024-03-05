@@ -4,9 +4,9 @@ Constants of JSON-RPC service parameters
 
 ID = 'id'
 
-EVENT__USER_CREATED = 'user.created'
-EVENT__USER_UPDATED = 'user.updated'
-EVENT__USER_DELETED = 'user.deleted'
+EVENT__USER_CREATED = 'created'
+EVENT__USER_UPDATED = 'updated'
+EVENT__USER_DELETED = 'deleted'
 
 LOGIN = 'login'
 BEAK_SHAPE = 'beak_shape'

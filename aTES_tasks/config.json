@@ -20,8 +20,8 @@
             "name": "streaming.task",
             "type": "topic"
         },
-        "task_business_events": {
-            "name": "business_events.task",
+        "workflow": {
+            "name": "workflow",
             "type": "topic"
         }
     },

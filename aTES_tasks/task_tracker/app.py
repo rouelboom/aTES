@@ -44,13 +44,13 @@ async def on_app_start(app):
     await task_publisher.connect()
     app['task_streaming_publisher'] = task_publisher
 
-    business_event_publisher = RabbitMQPublisher(
+    workflow_event_publisher = RabbitMQPublisher(
         rabbit_connection,
-        exchange_name=config['exchanges']['task_business_events']['name'],
-        exchange_type=config['exchanges']['task_business_events']['type']
+        exchange_name=config['exchanges']['workflow']['name'],
+        exchange_type=config['exchanges']['workflow']['type']
     )
-    await business_event_publisher.connect()
-    app['business_event_publisher'] = business_event_publisher
+    await workflow_event_publisher.connect()
+    app['workflow_event_publisher'] = workflow_event_publisher
 
     user_consumer = RabbitMQConsumer(
         rabbit_connection,
@@ -74,7 +74,7 @@ async def on_app_stop(app):
     await app['rabbit_connection'].close()
     await app['task_streaming_publisher'].disconnect()
     await app['user_consumer'].disconnect()
-    await app['business_event_publisher'].disconnect()
+    await app['workflow_event_publisher'].disconnect()
 
     app['engine'].close()
     await app['engine'].wait_closed()
