@@ -35,3 +35,5 @@ ROLE = 'role'
 USER_ROLE__ADMIN = 'popug_admin'
 USER_ROLE__WORKER = 'popug_worker'
 USER_ROLE__MANAGER = 'popug_manager'
+
+EVENT_VERSION_1 = 1

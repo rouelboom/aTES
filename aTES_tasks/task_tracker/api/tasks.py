@@ -14,6 +14,7 @@ from task_tracker.api import const
 from task_tracker.dao.dao_users import DAOUsers
 from task_tracker.exceptions import Forbidden, InvalidParams, NotFound, Unauthorized
 from task_tracker.rmq.publisher import RabbitMQPublisher
+from task_tracker.utils import get_default_message_data
 from task_tracker.validation import schemas
 from task_tracker.dao.dao_tasks import DAOTasks
 
@@ -57,13 +58,13 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
     def _workflow_routing_key(self):
         return self._config['exchanges']['workflow']['name']
 
+
     @staticmethod
-    def _message(obj: dict, event: str):
+    def _message(obj: dict, event_name: str):
         return {
-            'event_id': uuid.uuid4().hex,
-            'event': event,
-            'object': obj,
-            'event_date': datetime.now()
+            **get_default_message_data(version=1),
+            'event_name': event_name,
+            'data': obj,
         }
 
     def _authenticated(self):
