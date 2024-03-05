@@ -18,23 +18,12 @@ async def init_engine(db_config) -> 'Engine':
 
 metadata = MetaData()
 
-
-Task = Table(
-    'task',
-    metadata,
-    Column('id', String),
-    Column('name', String),
-    Column('description', String),
-    Column('assigned_worker', String),  # link to table 'user'
-    Column('status', String),
-    PrimaryKeyConstraint('id', name='task__id__pkey')
-)
-
 User = Table(
     'user',
     metadata,
     Column('id', String),
     Column('role', String),
     Column('login', String),
+    Column('beak_shape', String),
     PrimaryKeyConstraint('id', name='user__id__pkey')
 )

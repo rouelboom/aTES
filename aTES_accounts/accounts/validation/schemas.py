@@ -5,7 +5,7 @@ from typing import Dict
 
 from cerberus import Validator
 
-from task_tracker.api import const
+from accounts.api import const
 
 
 ECHO = {
@@ -15,16 +15,21 @@ ECHO = {
 }
 
 
-ADD = {
+SIGN_UP = {
     const.ID: {
         'type': 'string',
         'coerce': 'strip'
     },
-    const.TASK_NAME: {
+    const.LOGIN: {
         'type': 'string',
         'coerce': 'strip'
     },
-    const.DESCRIPTION: {
+    const.ROLE: {
+        'type': 'string',
+        'coerce': 'strip',
+        'allowed': const.ALLOWED_ROLES
+    },
+    const.BEAK_SHAPE: {
         'type': 'string',
         'coerce': 'strip'
     }
@@ -36,11 +41,16 @@ SET = {
         'coerce': 'strip',
         'required': True
     },
-    const.TASK_NAME: {
+    const.LOGIN: {
         'type': 'string',
         'coerce': 'strip'
     },
-    const.DESCRIPTION: {
+    const.ROLE: {
+        'type': 'string',
+        'coerce': 'strip',
+        'allowed': const.ALLOWED_ROLES
+    },
+    const.BEAK_SHAPE: {
         'type': 'string',
         'coerce': 'strip'
     }
@@ -81,13 +91,6 @@ STRING_FILTER = {
     }
 }
 
-SIMPLE_FILTER = {
-    const.SIMPLE_FILTER_QUERY: {
-        'type': 'string',
-        'coerce': 'strip'
-    }
-}
-
 FILTER = {
     const.ID: {
         'type': 'dict',
@@ -100,23 +103,16 @@ FILTER = {
             }
         }
     },
-    const.TASK_NAME: {
+    const.ROLE: {
         'type': 'dict',
         'schema': STRING_FILTER
     },
-    const.SIMPLE_FILTER: {
-        'type': 'dict',
-        'schema': SIMPLE_FILTER
-    },
-
-
-
 }
 
 ORDER = {
     'field': {
         'type': 'string',
-        'allowed': [const.TASK_NAME]
+        'allowed': [const.ROLE]
     },
     'direction': {
         'type': 'string',
@@ -154,7 +150,7 @@ GET_LIST_BY_FILTER = {
 }
 
 
-def validate_task(obj: dict, schema: dict) -> Dict[str, list]:
+def validate_user_info(obj: dict, schema: dict) -> Dict[str, list]:
     """
     Validate
 

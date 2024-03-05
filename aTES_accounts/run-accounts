@@ -1,0 +1,7 @@
+#!/bin/sh
+
+source ~/Dev/pets/aTES/aTES_accounts/venv/bin/activate
+
+python -m accounts.run
+
+deactivate

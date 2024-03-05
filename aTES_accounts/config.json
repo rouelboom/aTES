@@ -1,9 +1,9 @@
 {
     "host": "127.0.0.1",
-    "port": 8081,
+    "port": 8082,
     "thread_pool_size": 5,
     "database": {
-        "name": "ates_tasks",
+        "name": "ates_accounts",
         "host": "127.0.0.1",
         "user": "postgres",
         "password": "postgres"
@@ -16,16 +16,9 @@
         "password": "guest"
     },
     "exchanges": {
-        "task_streaming": {
-            "name": "streaming.task",
-            "type": "topic"
-        },
-        "task_business_events": {
-            "name": "business_events.task",
+        "user_streaming": {
+            "name": "streaming.user",
             "type": "topic"
         }
-    },
-    "exchange_subscriptions": {
-        "user_streaming": "streaming.user"
     }
 }

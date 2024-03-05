@@ -3,7 +3,7 @@ Provides callbacks for rabbitmq
 """
 import json
 
-from task_tracker.api import const
+from accounts.api import const
 
 
 async def user_callback(message, data):
