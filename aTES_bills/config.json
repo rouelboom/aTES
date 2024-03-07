@@ -1,0 +1,31 @@
+{
+    "host": "127.0.0.1",
+    "port": 8081,
+    "thread_pool_size": 5,
+    "database": {
+        "name": "ates_tasks",
+        "host": "127.0.0.1",
+        "user": "postgres",
+        "password": "postgres"
+    },
+    "root_domain": "local",
+    "rabbitmq": {
+        "host": "127.0.0.1",
+        "port": 5672,
+        "login": "guest",
+        "password": "guest"
+    },
+    "exchanges": {
+        "task_streaming": {
+            "name": "streaming.task",
+            "type": "topic"
+        },
+        "workflow": {
+            "name": "workflow",
+            "type": "topic"
+        }
+    },
+    "exchange_subscriptions": {
+        "user_streaming": "streaming.user"
+    }
+}
