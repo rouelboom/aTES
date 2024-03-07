@@ -2,7 +2,7 @@
 Database objects definitions
 """
 from aiopg.sa import create_engine
-from sqlalchemy import Integer, MetaData, Table, Column, String, PrimaryKeyConstraint
+from sqlalchemy import DateTime, Integer, MetaData, Table, Column, String, PrimaryKeyConstraint
 
 
 async def init_engine(db_config) -> 'Engine':
@@ -25,9 +25,9 @@ Operation = Table(
     Column('id', String),
     Column('source_id', String),  # link to task
     Column('price', Integer),
-    Column('assigned_worker', String),  # link to table 'user'
-    Column('status', String),
-    PrimaryKeyConstraint('id', name='task__id__pkey')
+    Column('worker_id', String),  # link to table 'user'
+    Column('time', DateTime),
+    PrimaryKeyConstraint('id', name='operation__id__pkey')
 )
 
 
@@ -55,5 +55,5 @@ PersonalAccount = Table(
     Column('id', String),
     Column('owner_id', String),
     Column('value', Integer),
-    PrimaryKeyConstraint('id', name='task__id__pkey')
+    PrimaryKeyConstraint('id', name='personal_account__id__pkey')
 )

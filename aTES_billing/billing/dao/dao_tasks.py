@@ -8,7 +8,7 @@ import uuid
 import sqlalchemy
 from sqlalchemy import func
 
-from bills.api import const
+from bills import const
 from bills.exceptions import NotFound
 from bills.db import Task
 from bills.dao.filters import make_string_filter

@@ -1,16 +1,14 @@
 """
 Implementation of a service
 """
-from datetime import datetime
 import json
 import random
 from typing import List
-import uuid
 
 from aiohttp_jsonrpc.handler import JSONRPCView
 from aiohttp_cors import CorsViewMixin
 
-from bills.api import const
+from bills import const
 from bills.dao.dao_users import DAOUsers
 from bills.exceptions import Forbidden, InvalidParams, NotFound, Unauthorized
 from bills.rmq.publisher import RabbitMQPublisher

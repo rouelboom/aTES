@@ -24,8 +24,13 @@ NAME = 'name'
 DESCRIPTION = 'description'
 STATUS = 'status'
 ASSIGNED_WORKER = 'assigned_worker'
+
+WORKER_ID = 'worker_id'
+TIME = 'time'
+PRICE = 'price'
 FINISH_PRICE = 'finish_price'
 ASSIGN_PRICE = 'assign_price'
+SOURCE_ID = 'source_id'
 
 TASK_STATUS__FINISHED = 'finished'
 TASK_STATUS__OPENED = 'opened'

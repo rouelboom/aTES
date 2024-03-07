@@ -1,9 +1,10 @@
 """
 Provides callbacks for rabbitmq
 """
+from datetime import datetime, timezone
 import json
 
-from bills.api import const
+from bills import const
 from bills.dao.dao_tasks import handle_task_data
 
 
@@ -49,14 +50,25 @@ async def task_callback(message, data):
         return
 
 
-async def _handle_assigned_task(task, dao_operations, dao_company_income, dao_tasks):
+async def _handle_assigned_task(task_id, dao_operations, dao_company_income, dao_tasks):
     """
     Operations to handle:
      - reduce personal balance
      - increase company's income
 
     """
-    task
+    task = await dao_tasks.get(task_id)
+    assigned_price = task[const.ASSIGN_PRICE] * -1
+    operation_time = datetime.now(timezone.utc).isoformat()
+    operation = {
+        const.PRICE: assigned_price,
+        const.TIME: operation_time,
+        const.SOURCE_ID: task_id,
+        const.WORKER_ID: task[const.ASSIGNED_WORKER]
+    }
+    await dao_operations.add(operation)  # TODO внутри dao_operations.add надо в рамках одной транзакции уменьшать баланс пользователя и увеличивать баланс компании
+
+
 
 
 async def task_workflow_callback(message, data):
