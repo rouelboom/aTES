@@ -6,6 +6,9 @@ import json
 
 from billing import const
 from billing.dao.dao_tasks import handle_task_data
+from billing.rmq.message_publishing import get_message, publish_message
+from billing.rmq.publisher import RabbitMQPublisher
+from billing.schema_registry.validator import SchemaRegistryValidator
 
 
 async def user_callback(message, data):
@@ -50,7 +53,7 @@ async def task_callback(message, data):
         return
 
 
-async def _handle_assigned_task(task_id, dao_operations, dao_tasks):
+async def _handle_assigned_task(task_id, dao_operations, dao_tasks) -> dict:
     """
     Operations to handle:
      - reduce personal balance
@@ -71,10 +74,32 @@ async def _handle_assigned_task(task_id, dao_operations, dao_tasks):
         const.CREDIT: credit,
         const.DEBIT: debit
     }
-    await dao_operations.add(operation)
+    operation[const.ID] = await dao_operations.add(operation)
+    return operation
 
 
-async def _handle_finished_task(task_id, dao_operations, dao_tasks):
+async def _stream_new_operation(
+        operation: dict,
+        routing_key: str,
+        publisher: RabbitMQPublisher,
+        validator: SchemaRegistryValidator
+):
+    data = {
+        **operation,
+        const.OPERATION_ID: operation[const.ID]
+    }
+    data.pop(const.ID)
+    message = get_message(data, const.EVENT__OPERATION_CREATED, validator)
+    publish_message(
+        publisher,
+
+        message,
+    )
+
+
+
+
+async def _handle_finished_task(task_id, dao_operations, dao_tasks) -> dict:
     """
     Increases balance of
     """
@@ -92,7 +117,8 @@ async def _handle_finished_task(task_id, dao_operations, dao_tasks):
         const.CREDIT: credit,
         const.DEBIT: debit
     }
-    await dao_operations.add(operation)
+    operation[const.ID] = await dao_operations.add(operation)
+    return operation
 
 
 async def task_workflow_callback(message, data):
@@ -103,16 +129,24 @@ async def task_workflow_callback(message, data):
 
     if event == const.EVENT__TASK_ASSIGNED_1:
         task_id = data['assigned_task_id']
-        await _handle_assigned_task(
+        operation = await _handle_assigned_task(
             task_id,
             app['dao_operations'],
             app['dao_tasks']
-        )  # списать бабки
+        )  # создать запись о том что бабки списаны
 
     if event == const.EVENT__TASK_FINISHED_1:
         task_id = data['assigned_task_id']
-        await _handle_finished_task(
+        operation = await _handle_finished_task(
             task_id,
             app['dao_operations'],
             app['dao_tasks']
         )  # начислить бабки
+
+    if event in (const.EVENT__TASK_FINISHED_1, const.EVENT__TASK_ASSIGNED_1):
+        await _stream_new_operation(
+            operation,
+            app['config']['exchanges']['operation_streaming']['name'],
+            app['operation_publisher'],
+            app['schema_validator']
+        )

@@ -7,7 +7,6 @@ import uuid
 
 from billing.exceptions import InvalidParams
 from billing.rmq.publisher import RabbitMQPublisher
-from billing.schema_registry.validator import SchemaRegistryValidator
 
 
 def get_default_message_data(version: int = 1) -> dict:
@@ -18,8 +17,8 @@ def get_default_message_data(version: int = 1) -> dict:
     }
 
 
-def get_message(obj: dict, event_name: str, validator: SchemaRegistryValidator):
-    errors = validator.validate(obj, event_name)
+def get_message(self, obj: dict, event_name: str):
+    errors = self.schema_validator.validate(obj, event_name)
     if errors:
         print('>>>>> Event data is not valid:')
         print('>>>>> data: %s', obj)

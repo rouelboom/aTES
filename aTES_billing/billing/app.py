@@ -38,13 +38,13 @@ async def on_app_start(app):
     )
 
     app['rabbit_connection'] = rabbit_connection
-    operation_streaming_publisher = RabbitMQPublisher(
+    operation_publisher = RabbitMQPublisher(
         rabbit_connection,
         exchange_name=config['exchanges']['operation_streaming']['name'],
         exchange_type=config['exchanges']['operation_streaming']['type']
     )
-    await operation_streaming_publisher.connect()
-    app['operation_streaming_publisher'] = operation_streaming_publisher
+    await operation_publisher.connect()
+    app['operation_publisher'] = operation_publisher
 
     payment_event_publisher = RabbitMQPublisher(
         rabbit_connection,
@@ -88,7 +88,7 @@ async def on_app_stop(app):
     Stop tasks on application destroy
     """
     await app['rabbit_connection'].close()
-    await app['operation_streaming_publisher'].disconnect()
+    await app['operation_publisher'].disconnect()
     await app['payment_event_publisher'].disconnect()
     await app['user_consumer'].disconnect()
     await app['task_consumer'].disconnect()

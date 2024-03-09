@@ -18,7 +18,7 @@
     "schemas_dir_path": "~/Dev/pets/aTES/aTES_billing/billing/schema_registry/schemas",
     "exchanges": {
         "operation_streaming": {
-            "name": "streaming.task",
+            "name": "streaming.operation",
             "type": "topic"
         },
         "payments": {
