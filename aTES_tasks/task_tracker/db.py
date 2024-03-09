@@ -25,7 +25,7 @@ Task = Table(
     Column('id', String),
     Column('name', String),
     Column('description', String),
-    Column('assigned_worker', String),  # link to table 'user'
+    Column('assigned_worker_id', String),  # link to table 'user'
     Column('status', String),
     PrimaryKeyConstraint('id', name='task__id__pkey')
 )

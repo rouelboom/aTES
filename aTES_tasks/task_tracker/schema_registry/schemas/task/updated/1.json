@@ -30,7 +30,7 @@
         "type": "string",
         "required": false
       },
-      "assigned_worker": {
+      "assigned_worker_id": {
         "type": "string",
         "required": false
       },

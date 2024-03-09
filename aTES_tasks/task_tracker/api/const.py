@@ -23,7 +23,7 @@ EVENT__USER_DELETED = 'deleted'
 NAME = 'name'
 DESCRIPTION = 'description'
 STATUS = 'status'
-ASSIGNED_WORKER = 'assigned_worker'
+ASSIGNED_WORKER_ID = 'assigned_worker_id'
 
 TASK_STATUS__FINISHED = 'finished'
 TASK_STATUS__OPENED = 'opened'

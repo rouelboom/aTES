@@ -7,14 +7,15 @@ import aio_pika
 from aiohttp import web
 import aiohttp_cors
 
-from bills.dao.dao_users import DAOUsers
-from bills.db import init_engine
-from bills.dao.dao_tasks import DAOTasks
+from billing.dao.dao_billing import DAOBilling
+from billing.dao.dao_users import DAOUsers
+from billing.db import init_engine
+from billing.dao.dao_tasks import DAOTasks
 
-from bills.api.tasks import TaskTrackerService
-from bills.rmq.callbacks import user_callback
-from bills.rmq.consumer import RabbitMQConsumer
-from bills.rmq.publisher import RabbitMQPublisher
+from billing.api.operations import OperationsService
+from billing.rmq.callbacks import user_callback
+from billing.rmq.consumer import RabbitMQConsumer
+from billing.rmq.publisher import RabbitMQPublisher
 
 
 async def on_app_start(app):
@@ -65,6 +66,7 @@ async def on_app_start(app):
 
     app['dao_tasks'] = DAOTasks(engine)
     app['dao_users'] = DAOUsers(engine)
+    app['dao_operations'] = DAOBilling(engine)
 
 
 async def on_app_stop(app):
@@ -106,7 +108,7 @@ def create_app(loop: AbstractEventLoop = None, config: dict = None) -> web.Appli
         )
     })
 
-    cors.add(app.router.add_route('*', '/jsonrpc/tasks', TaskTrackerService))
+    cors.add(app.router.add_route('*', '/jsonrpc/operations', OperationsService))
 
     app['config'] = config
 

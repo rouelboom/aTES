@@ -5,7 +5,7 @@ from typing import Dict
 
 from cerberus import Validator
 
-from bills import const
+from billing import const
 
 ECHO = {
     'message': {

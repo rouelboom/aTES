@@ -125,13 +125,13 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
             raise InvalidParams
 
         try:
-            assigned_worker_id = await self._dao_users.get_random_user_id()
+            assigned_worker_id_id = await self._dao_users.get_random_user_id()
         except NotFound as e:
             print('User for task not found')
             raise NotFound from e
         task = {
             **task,
-            const.ASSIGNED_WORKER: assigned_worker_id,
+            const.ASSIGNED_WORKER_ID: assigned_worker_id_id,
             const.STATUS: const.TASK_STATUS__IN_PROGRESS
         }
 
@@ -191,7 +191,7 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
 
         for task in not_finished_tasks:
             random_index = random.randint(0, workers_count)
-            task[const.ASSIGNED_WORKER] = workers[random_index][const.ID]
+            task[const.ASSIGNED_WORKER_ID] = workers[random_index][const.ID]
             await self._dao_tasks.set(task)
             # task streaming
             await self._task_publisher.publish(

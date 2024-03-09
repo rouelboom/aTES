@@ -26,9 +26,9 @@ class SchemaRegistryValidator:
         self.schemas_dir_path = schemas_dir_path
 
     def _get_schema(self, event, version):
-        event_with_slashes = event.replace('.', '/')
-        schema_path = '{schemas_dir_path}/{event_with_slashes}/{version}.json'.format(
-            schemas_dir_path=self.schemas_dir_path, event_with_slashes=event_with_slashes, version=version
+        event_name_with_slashes = event.replace('.', '/')
+        schema_path = '{schemas_dir_path}/{event_name_with_slashes}/{version}.json'.format(
+            schemas_dir_path=self.schemas_dir_path, event_name_with_slashes=event_name_with_slashes, version=version
         )
         if not os.path.isfile(schema_path):
             raise ValidationSchemaNotFound
