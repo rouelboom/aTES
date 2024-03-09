@@ -15,21 +15,19 @@
         "login": "guest",
         "password": "guest"
     },
+    "schemas_dir_path": "~/Dev/pets/aTES/aTES_billing/billing/schema_registry/schemas",
     "exchanges": {
-        "task_streaming": {
+        "operation_streaming": {
             "name": "streaming.task",
             "type": "topic"
         },
-        "operations_streaming": {
-            "name": "streaming.task",
-            "type": "topic"
-        },
-        "workflow": {
-            "name": "workflow",
+        "payments": {
+            "name": "payments",
             "type": "topic"
         }
     },
     "exchange_subscriptions": {
-        "user_streaming": "streaming.user"
+        "user_streaming": "streaming.user",
+        "task_streaming": "streaming.task"
     }
 }

@@ -16,6 +16,7 @@ from billing.api.operations import OperationsService
 from billing.rmq.callbacks import user_callback
 from billing.rmq.consumer import RabbitMQConsumer
 from billing.rmq.publisher import RabbitMQPublisher
+from billing.schema_registry.validator import SchemaRegistryValidator
 
 
 async def on_app_start(app):
@@ -37,21 +38,21 @@ async def on_app_start(app):
     )
 
     app['rabbit_connection'] = rabbit_connection
-    task_publisher = RabbitMQPublisher(
+    operation_streaming_publisher = RabbitMQPublisher(
         rabbit_connection,
-        exchange_name=config['exchanges']['task_streaming']['name'],
-        exchange_type=config['exchanges']['task_streaming']['type']
+        exchange_name=config['exchanges']['operation_streaming']['name'],
+        exchange_type=config['exchanges']['operation_streaming']['type']
     )
-    await task_publisher.connect()
-    app['task_streaming_publisher'] = task_publisher
+    await operation_streaming_publisher.connect()
+    app['operation_streaming_publisher'] = operation_streaming_publisher
 
-    workflow_event_publisher = RabbitMQPublisher(
+    payment_event_publisher = RabbitMQPublisher(
         rabbit_connection,
         exchange_name=config['exchanges']['workflow']['name'],
         exchange_type=config['exchanges']['workflow']['type']
     )
-    await workflow_event_publisher.connect()
-    app['workflow_event_publisher'] = workflow_event_publisher
+    await payment_event_publisher.connect()
+    app['payment_event_publisher'] = payment_event_publisher
 
     user_consumer = RabbitMQConsumer(
         rabbit_connection,
@@ -64,9 +65,22 @@ async def on_app_start(app):
     await user_consumer.connect()
     app['user_consumer'] = user_consumer
 
+    task_consumer = RabbitMQConsumer(
+        rabbit_connection,
+        exchange_name=config['exchange_subscriptions']['task_streaming'],
+        exchange_type='topic',
+        routing_key='*.task',
+        callback=user_callback,
+        callback_data=app
+    )
+    await task_consumer.connect()
+    app['task_consumer'] = task_consumer
+
     app['dao_tasks'] = DAOTasks(engine)
     app['dao_users'] = DAOUsers(engine)
     app['dao_operations'] = DAOBilling(engine)
+
+    app['schema_validator'] = SchemaRegistryValidator(config['schemas_dir_path'])
 
 
 async def on_app_stop(app):
@@ -74,9 +88,10 @@ async def on_app_stop(app):
     Stop tasks on application destroy
     """
     await app['rabbit_connection'].close()
-    await app['task_streaming_publisher'].disconnect()
+    await app['operation_streaming_publisher'].disconnect()
+    await app['payment_event_publisher'].disconnect()
     await app['user_consumer'].disconnect()
-    await app['workflow_event_publisher'].disconnect()
+    await app['task_consumer'].disconnect()
 
     app['engine'].close()
     await app['engine'].wait_closed()

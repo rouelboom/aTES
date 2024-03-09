@@ -25,21 +25,21 @@ class SchemaRegistryValidator:
     ):
         self.schemas_dir_path = schemas_dir_path
 
-    def _get_schema(self, event, version):
+    def _get_schema(self, event):
         event_name_with_slashes = event.replace('.', '/')
-        schema_path = '{schemas_dir_path}/{event_name_with_slashes}/{version}.json'.format(
-            schemas_dir_path=self.schemas_dir_path, event_name_with_slashes=event_name_with_slashes, version=version
+        schema_path = '{schemas_dir_path}/{event_name_with_slashes}.json'.format(
+            schemas_dir_path=self.schemas_dir_path, event_name_with_slashes=event_name_with_slashes
         )
         if not os.path.isfile(schema_path):
             raise ValidationSchemaNotFound
         with open(schema_path) as file:
             return json.load(file)
 
-    def validate(self, data: dict, event, version) -> Dict[str, list]:
+    def validate(self, data: dict, event: str) -> Dict[str, list]:
         """
         Validates data of certain event according to event's version
         """
-        schema = self._get_schema(event, version)
+        schema = self._get_schema(event)
         validator = Validator(schema)
         validator.validate(data)
         return validator.errors

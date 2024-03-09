@@ -8,7 +8,7 @@ from aiohttp_cors import CorsViewMixin
 
 from billing.dao.dao_users import DAOUsers
 from billing.exceptions import Forbidden, InvalidParams, NotFound, Unauthorized
-from billing.rmq.publisher import RabbitMQPublisher
+from billing.schema_registry.validator import SchemaRegistryValidator
 from billing.utils import get_default_message_data
 from billing.dao.dao_tasks import DAOTasks
 
@@ -41,13 +41,15 @@ class OperationsService(CorsViewMixin, JSONRPCView):
         return self._config['exchanges']['task_streaming']['name']
 
     @property
+    def schema_validator(self) -> SchemaRegistryValidator:
+        return self.request.app['schema_validator']
+
+    @property
     def _workflow_routing_key(self):
         return self._config['exchanges']['workflow']['name']
 
-
-    @staticmethod
-    def _message(obj: dict, event_name: str):
-        # todo где то тут надо воткнуть схема реджистри
+    def _message(self, obj: dict, event_name: str):
+        errors = self.schema_validator.validate(obj, event_name)
         return {
             **get_default_message_data(version=1),
             'event_name': event_name,
