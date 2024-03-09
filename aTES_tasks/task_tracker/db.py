@@ -34,6 +34,7 @@ User = Table(
     'user',
     metadata,
     Column('id', String),
+    # решил, что в контексте данной задачи не буду реализовывать
     Column('role', String),
     Column('login', String),
     PrimaryKeyConstraint('id', name='user__id__pkey')

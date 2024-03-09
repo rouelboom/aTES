@@ -7,14 +7,14 @@ import aio_pika
 from aiohttp import web
 import aiohttp_cors
 
-from task_tracker.dao.dao_users import DAOUsers
-from task_tracker.db import init_engine
-from task_tracker.dao.dao_tasks import DAOTasks
+from bills.dao.dao_users import DAOUsers
+from bills.db import init_engine
+from bills.dao.dao_tasks import DAOTasks
 
-from task_tracker.api.tasks import TaskTrackerService
-from task_tracker.rmq.callbacks import user_callback
-from task_tracker.rmq.consumer import RabbitMQConsumer
-from task_tracker.rmq.publisher import RabbitMQPublisher
+from bills.api.tasks import TaskTrackerService
+from bills.rmq.callbacks import user_callback
+from bills.rmq.consumer import RabbitMQConsumer
+from bills.rmq.publisher import RabbitMQPublisher
 
 
 async def on_app_start(app):

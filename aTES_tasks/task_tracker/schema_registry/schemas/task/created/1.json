@@ -1,0 +1,43 @@
+{
+  "event_id": {
+    "type": "string",
+    "required": true
+  },
+  "event_name": {
+    "type": "string",
+    "required": true
+  },
+  "event_time": {
+    "type": "string",
+    "required": true
+  },
+  "event_version": {
+    "type": "string",
+    "required": true
+  },
+  "data": {
+    "type": "dict",
+    "schema": {
+      "task_id": {
+        "type": "string",
+        "required": true
+      },
+      "name": {
+        "type": "string",
+        "required": true
+      },
+      "description": {
+        "type": "string",
+        "required": true
+      },
+      "assigned_worker": {
+        "type": "string",
+        "required": true
+      },
+      "status": {
+        "type": "string",
+        "required": true
+      }
+    }
+  }
+}

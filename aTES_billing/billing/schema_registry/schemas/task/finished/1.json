@@ -1,0 +1,35 @@
+{
+  "event_id": {
+    "type": "string",
+    "required": true
+  },
+  "event_name": {
+    "type": "string",
+    "required": true
+  },
+  "event_time": {
+    "type": "string",
+    "required": true
+  },
+  "event_version": {
+    "type": "string",
+    "required": true
+  },
+  "data": {
+    "type": "dict",
+    "schema": {
+      "person_assigner_id": {
+        "type": "string",
+        "required": true
+      },
+      "person_assign_to_id": {
+        "type": "string",
+        "required": true
+      },
+      "task_id": {
+        "type": "string",
+        "required": true
+      }
+    }
+  }
+}

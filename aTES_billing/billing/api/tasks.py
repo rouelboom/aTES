@@ -1,22 +1,20 @@
 """
 Implementation of a service
 """
-from datetime import datetime
 import json
 import random
 from typing import List
-import uuid
 
 from aiohttp_jsonrpc.handler import JSONRPCView
 from aiohttp_cors import CorsViewMixin
 
-from task_tracker.api import const
-from task_tracker.dao.dao_users import DAOUsers
-from task_tracker.exceptions import Forbidden, InvalidParams, NotFound, Unauthorized
-from task_tracker.rmq.publisher import RabbitMQPublisher
-from task_tracker.utils import get_default_message_data
-from task_tracker.validation import schemas
-from task_tracker.dao.dao_tasks import DAOTasks
+from bills import const
+from bills.dao.dao_users import DAOUsers
+from bills.exceptions import Forbidden, InvalidParams, NotFound, Unauthorized
+from bills.rmq.publisher import RabbitMQPublisher
+from bills.utils import get_default_message_data
+from bills.validation import schemas
+from bills.dao.dao_tasks import DAOTasks
 
 
 class TaskTrackerService(CorsViewMixin, JSONRPCView):
@@ -144,7 +142,7 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
         )
         await self._task_publisher.publish(
             self._workflow_routing_key,
-            json.dumps(self._message(task, const.EVENT__TASK_ASSIGNED))
+            json.dumps(self._message(task, const.EVENT__TASK_ASSIGNED_1))
         )
         return task_id
 
@@ -174,7 +172,7 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
 
         await self._workflow_event_publisher.publish(
             self._workflow_routing_key,
-            json.dumps(self._message(task, const.EVENT__TASK_FINISHED))
+            json.dumps(self._message(task, const.EVENT__TASK_FINISHED_1))
         )
 
     async def shuffle(self):
@@ -201,7 +199,7 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
             # business event - worker changed
             await self._workflow_event_publisher.publish(
                 self._workflow_routing_key,
-                json.dumps(self._message(task, const.EVENT__TASK_ASSIGNED))
+                json.dumps(self._message(task, const.EVENT__TASK_ASSIGNED_1))
             )
 
     async def rpc_get_count_by_filter(self, filter: dict) -> int:  # pylint: disable = redefined-builtin

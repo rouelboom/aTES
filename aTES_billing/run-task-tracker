@@ -1,0 +1,7 @@
+#!/bin/sh
+
+source ~/Dev/pets/aTES/aTES_tasks/venv/bin/activate
+
+python -m bills.run
+
+deactivate
