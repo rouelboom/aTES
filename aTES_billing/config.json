@@ -21,8 +21,8 @@
             "name": "streaming.operation",
             "type": "topic"
         },
-        "payments": {
-            "name": "payments",
+        "billing": {
+            "name": "billing",
             "type": "topic"
         }
     },

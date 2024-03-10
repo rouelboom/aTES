@@ -91,6 +91,10 @@ class DAOBilling:
             )
         )
 
+    async def get_personal_balance(self, user_id: str) -> int:
+        async with self.engine.acquire() as conn:
+            return await self._get_personal_balance(conn, user_id)
+
     @staticmethod
     async def _get_personal_balance(conn, user_id: str) -> int:
         personal_balance = await (
@@ -178,7 +182,7 @@ class DAOBilling:
             result.append(dict(row))
         return result
 
-    async def add(self, obj: dict) -> str:
+    async def add_operation(self, obj: dict) -> str:
         async with self.engine.acquire() as conn:
             async with conn.begin():
                 return await self._add(conn, obj)

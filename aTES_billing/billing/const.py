@@ -26,6 +26,7 @@ EVENT__USER_UPDATED = 'user.updated.1'
 EVENT__USER_DELETED = 'user.deleted.1'
 
 EVENT__OPERATION_CREATED = 'operation.created.1'
+EVENT__WITHDRAW_1 = 'billing.withdraw.1'
 
 
 NAME = 'name'

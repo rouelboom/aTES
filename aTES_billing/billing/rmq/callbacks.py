@@ -53,15 +53,9 @@ async def task_callback(message, data):
         return
 
 
-async def _handle_assigned_task(task_id, dao_operations, dao_tasks) -> dict:
-    """
-    Operations to handle:
-     - reduce personal balance
-     - increase company's income
-
-    """
+async def _handle_assigned_task(task_id, dao_billing, dao_tasks) -> dict:
     task = await dao_tasks.get(task_id)
-    billing_cycle = await dao_operations.get_current_billing_cycle()
+    billing_cycle = await dao_billing.get_current_billing_cycle()
     billing_cycle_id = billing_cycle[const.BILLING_CYCLE_ID]
     credit = 0
     debit = task[const.ASSIGN_PRICE]
@@ -69,16 +63,16 @@ async def _handle_assigned_task(task_id, dao_operations, dao_tasks) -> dict:
     operation = {
         const.BILLING_CYCLE_ID: billing_cycle_id,
         const.TIME: operation_time,
-        const.TASK_ID: task_id,
+        const.DESCRIPTION: task_id,
         const.WORKER_ID: task[const.ASSIGNED_WORKER_ID],
         const.CREDIT: credit,
         const.DEBIT: debit
     }
-    operation[const.ID] = await dao_operations.add(operation)
+    operation[const.ID] = await dao_billing.add_operation(operation)
     return operation
 
 
-async def _stream_new_operation(
+async def stream_new_operation(
         operation: dict,
         routing_key: str,
         publisher: RabbitMQPublisher,
@@ -90,21 +84,16 @@ async def _stream_new_operation(
     }
     data.pop(const.ID)
     message = get_message(data, const.EVENT__OPERATION_CREATED, validator)
-    publish_message(
+    await publish_message(
         publisher,
-
-        message,
+        routing_key,
+        message
     )
 
 
-
-
-async def _handle_finished_task(task_id, dao_operations, dao_tasks) -> dict:
-    """
-    Increases balance of
-    """
+async def _handle_finished_task(task_id, dao_billing, dao_tasks) -> dict:
     task = await dao_tasks.get(task_id)
-    billing_cycle = await dao_operations.get_current_billing_cycle()
+    billing_cycle = await dao_billing.get_current_billing_cycle()
     billing_cycle_id = billing_cycle[const.BILLING_CYCLE_ID]
     credit = task[const.FINISH_PRICE]
     debit = 0
@@ -112,12 +101,12 @@ async def _handle_finished_task(task_id, dao_operations, dao_tasks) -> dict:
     operation = {
         const.BILLING_CYCLE_ID: billing_cycle_id,
         const.TIME: operation_time,
-        const.TASK_ID: task_id,
+        const.DESCRIPTION: task_id,
         const.WORKER_ID: task[const.ASSIGNED_WORKER_ID],
         const.CREDIT: credit,
         const.DEBIT: debit
     }
-    operation[const.ID] = await dao_operations.add(operation)
+    operation[const.ID] = await dao_billing.add_operation(operation)
     return operation
 
 
@@ -131,7 +120,7 @@ async def task_workflow_callback(message, data):
         task_id = data['assigned_task_id']
         operation = await _handle_assigned_task(
             task_id,
-            app['dao_operations'],
+            app['dao_billing'],
             app['dao_tasks']
         )  # создать запись о том что бабки списаны
 
@@ -139,12 +128,12 @@ async def task_workflow_callback(message, data):
         task_id = data['assigned_task_id']
         operation = await _handle_finished_task(
             task_id,
-            app['dao_operations'],
+            app['dao_billing'],
             app['dao_tasks']
         )  # начислить бабки
 
     if event in (const.EVENT__TASK_FINISHED_1, const.EVENT__TASK_ASSIGNED_1):
-        await _stream_new_operation(
+        await stream_new_operation(
             operation,
             app['config']['exchanges']['operation_streaming']['name'],
             app['operation_publisher'],

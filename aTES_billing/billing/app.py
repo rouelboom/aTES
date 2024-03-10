@@ -7,6 +7,7 @@ import aio_pika
 from aiohttp import web
 import aiohttp_cors
 
+from billing.cron.daily import handle_daily_withdraw
 from billing.dao.dao_billing import DAOBilling
 from billing.dao.dao_users import DAOUsers
 from billing.db import init_engine
@@ -46,13 +47,13 @@ async def on_app_start(app):
     await operation_publisher.connect()
     app['operation_publisher'] = operation_publisher
 
-    payment_event_publisher = RabbitMQPublisher(
+    billing_event_publisher = RabbitMQPublisher(
         rabbit_connection,
-        exchange_name=config['exchanges']['workflow']['name'],
-        exchange_type=config['exchanges']['workflow']['type']
+        exchange_name=config['exchanges']['billing']['name'],
+        exchange_type=config['exchanges']['billing']['type']
     )
-    await payment_event_publisher.connect()
-    app['payment_event_publisher'] = payment_event_publisher
+    await billing_event_publisher.connect()
+    app['billing_event_publisher'] = billing_event_publisher
 
     user_consumer = RabbitMQConsumer(
         rabbit_connection,
@@ -78,7 +79,7 @@ async def on_app_start(app):
 
     app['dao_tasks'] = DAOTasks(engine)
     app['dao_users'] = DAOUsers(engine)
-    app['dao_operations'] = DAOBilling(engine)
+    app['dao_billing'] = DAOBilling(engine)
 
     app['schema_validator'] = SchemaRegistryValidator(config['schemas_dir_path'])
 
@@ -89,7 +90,7 @@ async def on_app_stop(app):
     """
     await app['rabbit_connection'].close()
     await app['operation_publisher'].disconnect()
-    await app['payment_event_publisher'].disconnect()
+    await app['billing_event_publisher'].disconnect()
     await app['user_consumer'].disconnect()
     await app['task_consumer'].disconnect()
 
@@ -123,6 +124,7 @@ def create_app(loop: AbstractEventLoop = None, config: dict = None) -> web.Appli
         )
     })
 
+    app.router.add_route('GET', '/cron/daily-withdraw', handle_daily_withdraw)
     cors.add(app.router.add_route('*', '/jsonrpc/operations', OperationsService))
 
     app['config'] = config

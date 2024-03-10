@@ -25,7 +25,7 @@ Operation = Table(
     Column('id', String),
     Column('billing_cycle_id', String),
     Column('worker_id', String),  # link to table 'user'
-    Column('task_id', String),  # link to task
+    Column('description', String),
     Column('debit', Integer),  # списание
     Column('credit', Integer),  # пополнение
     Column('time', DateTime),

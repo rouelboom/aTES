@@ -27,7 +27,7 @@ async def handle_task_data(task, dao_tasks):
         finish_price = random.randint(20, 40)
         task[const.ASSIGN_PRICE] = assign_price
         task[const.FINISH_PRICE] = finish_price
-        await dao_tasks.add(task)
+        await dao_tasks.add_operation(task)
 
 
 class DAOTasks:

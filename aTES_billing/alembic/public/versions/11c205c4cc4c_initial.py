@@ -23,7 +23,7 @@ def upgrade():
         sa.Column('id', sa.String),
         sa.Column('billing_cycle_id', sa.String),
         sa.Column('worker_id', sa.String),  # link to table 'user'
-        sa.Column('task_id', sa.String),  # link to task
+        sa.Column('description', sa.String),
         sa.Column('debit', sa.Integer),
         sa.Column('credit', sa.Integer),
         sa.Column('time', sa.DateTime),

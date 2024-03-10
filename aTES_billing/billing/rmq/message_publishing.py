@@ -31,7 +31,7 @@ def get_message(obj: dict, event_name: str, validator: SchemaRegistryValidator):
     }
 
 
-def publish_message(
+async def publish_message(
         publisher: RabbitMQPublisher,
         routing_key: str,
         message: dict):
