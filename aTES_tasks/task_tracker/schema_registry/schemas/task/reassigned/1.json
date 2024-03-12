@@ -18,11 +18,15 @@
   "data": {
     "type": "dict",
     "schema": {
-      "task_id": {
+      "person_assigner_id": {
         "type": "string",
         "required": true
       },
-      "finisher_person_id": {
+      "assign_to_person_id": {
+        "type": "string",
+        "required": true
+      },
+      "task_id": {
         "type": "string",
         "required": true
       }
