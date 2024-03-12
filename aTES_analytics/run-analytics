@@ -1,0 +1,7 @@
+#!/bin/sh
+
+source ~/Dev/pets/aTES/aTES_analytics/venv/bin/activate
+
+python -m analytics.run
+
+deactivate

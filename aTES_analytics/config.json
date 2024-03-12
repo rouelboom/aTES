@@ -1,0 +1,26 @@
+{
+    "host": "127.0.0.1",
+    "port": 8084,
+    "thread_pool_size": 5,
+    "database": {
+        "name": "ates_analytics",
+        "host": "127.0.0.1",
+        "user": "postgres",
+        "password": "postgres"
+    },
+    "root_domain": "local",
+    "rabbitmq": {
+        "host": "127.0.0.1",
+        "port": 5672,
+        "login": "guest",
+        "password": "guest"
+    },
+    "schemas_dir_path": "~/Dev/pets/aTES/aTES_analytics/analytics/schema_registry/schemas",
+    "exchanges": {
+    },
+    "exchange_subscriptions": {
+        "user_streaming": "streaming.user",
+        "task_streaming": "streaming.task",
+        "operation_streaming": "streaming.operation"
+    }
+}

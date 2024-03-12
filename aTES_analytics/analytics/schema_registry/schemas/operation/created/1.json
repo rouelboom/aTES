@@ -1,0 +1,52 @@
+{
+  "event_id": {
+    "type": "string",
+    "required": true
+  },
+  "event_name": {
+    "type": "string",
+    "required": true
+  },
+  "event_time": {
+    "type": "string",
+    "required": true
+  },
+  "event_version": {
+    "type": "string",
+    "required": true
+  },
+  "data": {
+    "type": "dict",
+    "allow_unknown": true,
+    "schema": {
+      "operation_id": {
+        "type": "string",
+        "required": true
+      },
+      "analytics_cycle_id": {
+        "type": "string",
+        "required": true
+      },
+      "worker_id": {
+        "type": "string",
+        "required": true
+      },
+      "task_id": {
+        "type": "string",
+        "required": true
+      },
+      "debit": {
+        "type": "integer",
+        "required": true
+      },
+      "credit": {
+        "type": "integer",
+        "required": true
+      },
+      "time": {
+        "type": "string",
+        "required": true
+      }
+    }
+  }
+}
