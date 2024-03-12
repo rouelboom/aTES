@@ -1,5 +1,5 @@
 """
-Manipulate in database with Entity of Scaffolded application
+Manipulate in database with tables
 """
 import random
 from typing import List
@@ -8,10 +8,10 @@ import uuid
 import sqlalchemy
 from sqlalchemy import func
 
-from bills import const
-from bills.exceptions import NotFound
-from bills.db import Task
-from bills.dao.filters import make_string_filter
+from billing import const
+from billing.exceptions import NotFound
+from billing.db import Task
+from billing.dao.filters import make_string_filter
 
 
 async def handle_task_data(task, dao_tasks):
@@ -25,9 +25,9 @@ async def handle_task_data(task, dao_tasks):
     except NotFound:
         assign_price = random.randint(10, 20)
         finish_price = random.randint(20, 40)
-        task[const.FINISH_PRICE] = assign_price
+        task[const.ASSIGN_PRICE] = assign_price
         task[const.FINISH_PRICE] = finish_price
-        await dao_tasks.add(task)
+        await dao_tasks.add_operation(task)
 
 
 class DAOTasks:

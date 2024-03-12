@@ -23,7 +23,7 @@ def upgrade():
         sa.Column('id', sa.String),
         sa.Column('name', sa.String),
         sa.Column('description', sa.String),
-        sa.Column('assigned_worker', sa.String),  # link to table 'user'
+        sa.Column('assigned_worker_id', sa.String),  # link to table 'user'
         sa.Column('status', sa.String),
         sa.PrimaryKeyConstraint('id', name='task__id__pkey')
     )

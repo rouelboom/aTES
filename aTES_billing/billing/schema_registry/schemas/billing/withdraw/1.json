@@ -17,26 +17,35 @@
   },
   "data": {
     "type": "dict",
+    "allow_unknown": true,
     "schema": {
+      "receiver_id": {
+        "type": "string",
+        "required": true
+      },
+      "description": {
+        "type": "string",
+        "required": true
+      },
+      "worker_id": {
+        "type": "string",
+        "required": true
+      },
       "task_id": {
         "type": "string",
         "required": true
       },
-      "name": {
-        "type": "string",
-        "required": false
+      "debit": {
+        "type": "integer",
+        "required": true
       },
-      "description": {
-        "type": "string",
-        "required": false
+      "credit": {
+        "type": "integer",
+        "required": true
       },
-      "assigned_worker_id": {
+      "time": {
         "type": "string",
-        "required": false
-      },
-      "status": {
-        "type": "string",
-        "required": false
+        "required": true
       }
     }
   }

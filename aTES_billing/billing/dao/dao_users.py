@@ -1,5 +1,5 @@
 """
-Manipulate in database with Entity of Scaffolded application
+Manipulate in database with tables
 """
 import random
 from typing import List
@@ -8,10 +8,10 @@ import uuid
 import sqlalchemy
 from sqlalchemy import func
 
-from bills import const
-from bills.exceptions import NotFound
-from bills.db import User
-from bills.dao.filters import make_string_filter
+from billing import const
+from billing.exceptions import NotFound
+from billing.db import User
+from billing.dao.filters import make_string_filter
 
 
 class DAOUsers:

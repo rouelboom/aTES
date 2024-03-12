@@ -2,6 +2,6 @@
 
 source ~/Dev/pets/aTES/aTES_tasks/venv/bin/activate
 
-python -m bills.run
+python -m billing.run
 
 deactivate

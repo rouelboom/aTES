@@ -7,14 +7,17 @@ import aio_pika
 from aiohttp import web
 import aiohttp_cors
 
-from bills.dao.dao_users import DAOUsers
-from bills.db import init_engine
-from bills.dao.dao_tasks import DAOTasks
+from billing.cron.daily import handle_daily_withdraw
+from billing.dao.dao_billing import DAOBilling
+from billing.dao.dao_users import DAOUsers
+from billing.db import init_engine
+from billing.dao.dao_tasks import DAOTasks
 
-from bills.api.tasks import TaskTrackerService
-from bills.rmq.callbacks import user_callback
-from bills.rmq.consumer import RabbitMQConsumer
-from bills.rmq.publisher import RabbitMQPublisher
+from billing.api.operations import OperationsService
+from billing.rmq.callbacks import user_callback
+from billing.rmq.consumer import RabbitMQConsumer
+from billing.rmq.publisher import RabbitMQPublisher
+from billing.schema_registry.validator import SchemaRegistryValidator
 
 
 async def on_app_start(app):
@@ -36,21 +39,21 @@ async def on_app_start(app):
     )
 
     app['rabbit_connection'] = rabbit_connection
-    task_publisher = RabbitMQPublisher(
+    operation_publisher = RabbitMQPublisher(
         rabbit_connection,
-        exchange_name=config['exchanges']['task_streaming']['name'],
-        exchange_type=config['exchanges']['task_streaming']['type']
+        exchange_name=config['exchanges']['operation_streaming']['name'],
+        exchange_type=config['exchanges']['operation_streaming']['type']
     )
-    await task_publisher.connect()
-    app['task_streaming_publisher'] = task_publisher
+    await operation_publisher.connect()
+    app['operation_publisher'] = operation_publisher
 
-    workflow_event_publisher = RabbitMQPublisher(
+    billing_event_publisher = RabbitMQPublisher(
         rabbit_connection,
-        exchange_name=config['exchanges']['workflow']['name'],
-        exchange_type=config['exchanges']['workflow']['type']
+        exchange_name=config['exchanges']['billing']['name'],
+        exchange_type=config['exchanges']['billing']['type']
     )
-    await workflow_event_publisher.connect()
-    app['workflow_event_publisher'] = workflow_event_publisher
+    await billing_event_publisher.connect()
+    app['billing_event_publisher'] = billing_event_publisher
 
     user_consumer = RabbitMQConsumer(
         rabbit_connection,
@@ -63,8 +66,22 @@ async def on_app_start(app):
     await user_consumer.connect()
     app['user_consumer'] = user_consumer
 
+    task_consumer = RabbitMQConsumer(
+        rabbit_connection,
+        exchange_name=config['exchange_subscriptions']['task_streaming'],
+        exchange_type='topic',
+        routing_key='*.task',
+        callback=user_callback,
+        callback_data=app
+    )
+    await task_consumer.connect()
+    app['task_consumer'] = task_consumer
+
     app['dao_tasks'] = DAOTasks(engine)
     app['dao_users'] = DAOUsers(engine)
+    app['dao_billing'] = DAOBilling(engine)
+
+    app['schema_validator'] = SchemaRegistryValidator(config['schemas_dir_path'])
 
 
 async def on_app_stop(app):
@@ -72,9 +89,10 @@ async def on_app_stop(app):
     Stop tasks on application destroy
     """
     await app['rabbit_connection'].close()
-    await app['task_streaming_publisher'].disconnect()
+    await app['operation_publisher'].disconnect()
+    await app['billing_event_publisher'].disconnect()
     await app['user_consumer'].disconnect()
-    await app['workflow_event_publisher'].disconnect()
+    await app['task_consumer'].disconnect()
 
     app['engine'].close()
     await app['engine'].wait_closed()
@@ -106,7 +124,8 @@ def create_app(loop: AbstractEventLoop = None, config: dict = None) -> web.Appli
         )
     })
 
-    cors.add(app.router.add_route('*', '/jsonrpc/tasks', TaskTrackerService))
+    app.router.add_route('GET', '/cron/daily-withdraw', handle_daily_withdraw)
+    cors.add(app.router.add_route('*', '/jsonrpc/operations', OperationsService))
 
     app['config'] = config
 

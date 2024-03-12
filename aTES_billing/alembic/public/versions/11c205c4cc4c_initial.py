@@ -21,33 +21,34 @@ def upgrade():
     op.create_table(
         'operation',
         sa.Column('id', sa.String),
-        sa.Column('source_id', sa.String),  # link to task
-        sa.Column('price', sa.Integer),
+        sa.Column('billing_cycle_id', sa.String),
         sa.Column('worker_id', sa.String),  # link to table 'user'
-        sa.Column('status', sa.String),
+        sa.Column('description', sa.String),
+        sa.Column('debit', sa.Integer),
+        sa.Column('credit', sa.Integer),
+        sa.Column('time', sa.DateTime),
         sa.PrimaryKeyConstraint('id', name='operation__id__pkey')
     )
 
     op.create_table(
-        'personal_account',
-        sa.Column('id', sa.String),
-        sa.Column('owner_id', sa.String),
-        sa.Column('value', sa.Integer),
-        sa.PrimaryKeyConstraint('id', name='personal_account__id__pkey')
+        'billing_cycle',
+        sa.Column('id', sa.DateTime),
+        sa.Column('start_date', sa.DateTime),
+        sa.Column('end_date', sa.DateTime),  # link to task
+        sa.Column('status', sa.Integer),  # opened | closed
+        sa.PrimaryKeyConstraint('id', name='operation__id__pkey')
     )
 
     op.create_table(
-        'company_income',
-        sa.Column('id', sa.String),
+        'personal_balance',
+        sa.Column('user_id', sa.String),
         sa.Column('value', sa.Integer),
-        sa.PrimaryKeyConstraint('id', name='company_income__id__pkey')
-    )
+        sa.PrimaryKeyConstraint('id', name='personal_account__user_id__pkey')
+        )
 
     op.create_table(
         'task',
         sa.Column('id', sa.String),
-        sa.Column('name', sa.String),
-        sa.Column('description', sa.String),
         sa.Column('assigned_worker', sa.String),
         sa.Column('price', sa.Integer),
         sa.PrimaryKeyConstraint('id', name='task__id__pkey')
@@ -56,6 +57,6 @@ def upgrade():
 
 def downgrade():
     op.drop_table('operation')
-    op.drop_table('personal_account')
-    op.drop_table('company_income')
+    op.drop_table('billing_cycle')
+    op.drop_table('personal_balance')
     op.drop_table('task')
