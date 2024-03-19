@@ -18,6 +18,11 @@ EVENT__TASK_FINISHED_1 = 'task.finished.1'
 # STREAMING EVENTS
 # я всё-таки решил оставить имя сущности в названии события
 # в связи с тем, что решил, что такие образом будет проще построить валидатор
+
+# UPD: осознаю, что можно было по другому написать валидатор -
+# добавить туда параметр, в котором передавалось бы имя обменника типа "task", "operation"
+# и таким образом мы бы упростили названия, отказались бы от дублирования имени сущности в обменнике и в имени события,
+# но делать я этого в сейчас не буду, ибо уже много не успеваю, не хочется закопаться в рефакторинге
 EVENT__TASK_CREATED = 'task.created.1'
 EVENT__TASK_UPDATED = 'task.updated.1'
 
@@ -28,6 +33,7 @@ EVENT__USER_DELETED = 'user.deleted.1'
 EVENT__OPERATION_CREATED = 'operation.created.1'
 EVENT__WITHDRAW_1 = 'billing.withdraw.1'
 
+EVENT__PRICE_CREATED_V1 = 'price.created.1'
 
 NAME = 'name'
 DESCRIPTION = 'description'

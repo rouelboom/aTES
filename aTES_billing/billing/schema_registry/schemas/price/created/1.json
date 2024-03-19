@@ -1,0 +1,36 @@
+{
+  "event_id": {
+    "type": "string",
+    "required": true
+  },
+  "event_name": {
+    "type": "string",
+    "required": true
+  },
+  "event_time": {
+    "type": "string",
+    "required": true
+  },
+  "event_version": {
+    "type": "string",
+    "required": true
+  },
+  "data": {
+    "type": "dict",
+    "allow_unknown": true,
+    "schema": {
+      "task_id": {
+        "type": "string",
+        "required": true
+      },
+      "assign_price": {
+        "type": "string",
+        "required": true
+      },
+      "finish_price": {
+        "type": "string",
+        "required": true
+      }
+    }
+  }
+}

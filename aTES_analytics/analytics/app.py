@@ -12,7 +12,7 @@ from analytics.dao.dao_users import DAOUsers
 from analytics.db import init_engine
 from analytics.dao.dao_tasks import DAOTasks
 
-from analytics.api.operations import AnalyticsService
+from analytics.api.analytics import AnalyticsService
 from analytics.rmq.callbacks import user_callback
 from analytics.rmq.consumer import RabbitMQConsumer
 from analytics.rmq.publisher import RabbitMQPublisher

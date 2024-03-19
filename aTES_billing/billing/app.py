@@ -55,6 +55,14 @@ async def on_app_start(app):
     await billing_event_publisher.connect()
     app['billing_event_publisher'] = billing_event_publisher
 
+    price_publisher = RabbitMQPublisher(
+        rabbit_connection,
+        exchange_name=config['exchanges']['price_streaming']['name'],
+        exchange_type=config['exchanges']['price_streaming']['type']
+    )
+    await price_publisher.connect()
+    app['price_publisher'] = price_publisher
+
     user_consumer = RabbitMQConsumer(
         rabbit_connection,
         exchange_name=config['exchange_subscriptions']['user_streaming'],
@@ -93,6 +101,7 @@ async def on_app_stop(app):
     await app['billing_event_publisher'].disconnect()
     await app['user_consumer'].disconnect()
     await app['task_consumer'].disconnect()
+    await app['price_publisher'].disconnect()
 
     app['engine'].close()
     await app['engine'].wait_closed()
