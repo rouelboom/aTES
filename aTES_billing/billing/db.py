@@ -49,7 +49,8 @@ Task = Table(
     metadata,
     Column('id', String),
     Column('assigned_worker', String),
-    Column('price', Integer),
+    Column('assign_price', Integer),
+    Column('finish_price', Integer),
     PrimaryKeyConstraint('id', name='task__id__pkey')
 )
 
@@ -59,4 +60,13 @@ PersonalBalance = Table(
     Column('user_id', String),
     Column('value', Integer),
     PrimaryKeyConstraint('id', name='personal_account__user_id__pkey')
+)
+
+Price = Table(
+    'price',
+    metadata,
+    Column('task_id', String),
+    Column('assign_price', Integer),
+    Column('finish_price', Integer),
+    PrimaryKeyConstraint('id', name='price__task_id__pkey')
 )

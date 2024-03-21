@@ -17,12 +17,17 @@
   },
   "data": {
     "type": "dict",
+    "allow_unknown": true,
     "schema": {
       "task_id": {
         "type": "string",
         "required": true
       },
-      "finisher_person_id": {
+      "assign_price": {
+        "type": "string",
+        "required": true
+      },
+      "finish_price": {
         "type": "string",
         "required": true
       }

@@ -19,16 +19,18 @@ def get_default_message_data(version: int = 1) -> dict:
 
 
 def get_message(obj: dict, event_name: str, validator: SchemaRegistryValidator):
-    errors = validator.validate(obj, event_name)
-    if errors:
-        print('>>>>> Event data is not valid:')
-        print('>>>>> data: %s', obj)
-        raise InvalidParams
-    return {
+    message = {
         **get_default_message_data(version=1),
         'event_name': event_name,
         'data': obj,
     }
+    errors = validator.validate(message, event_name)
+    if errors:
+        print('>>>>> Event data is not valid:')
+        print('>>>>> data: %s', obj)
+        raise InvalidParams
+
+    return message
 
 
 async def publish_message(

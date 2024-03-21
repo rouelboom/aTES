@@ -21,6 +21,10 @@
             "name": "streaming.operation",
             "type": "topic"
         },
+        "price_streaming": {
+            "name": "streaming.price",
+            "type": "topic"
+        },
         "billing": {
             "name": "billing",
             "type": "topic"

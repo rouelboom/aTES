@@ -41,6 +41,7 @@ async def task_callback(message, data):
     app = data
     data = message_body['data']
     event = message_body['event_name']
+    config = app['config']
 
     if event in (const.EVENT__TASK_CREATED, const.EVENT__TASK_UPDATED):
         task = {
@@ -49,7 +50,13 @@ async def task_callback(message, data):
             'description': data['description'],
             'assigned_worker': data['description']
         }
-        await handle_task_data(task, app['dao_tasks'])
+        task_with_prices = await handle_task_data(task, app['dao_tasks'])
+        await stream_price(
+            task_with_prices,
+            config['exchanges']['streaming_price']['name'],
+            app['price_publisher'],
+            app['schema_validator']
+        )
         return
 
 
@@ -84,6 +91,25 @@ async def stream_new_operation(
     }
     data.pop(const.ID)
     message = get_message(data, const.EVENT__OPERATION_CREATED, validator)
+    await publish_message(
+        publisher,
+        routing_key,
+        message
+    )
+
+
+async def stream_price(
+        task: dict,
+        routing_key: str,
+        publisher: RabbitMQPublisher,
+        validator: SchemaRegistryValidator
+):
+    data = {
+        const.TASK_ID: task,
+        const.ASSIGN_PRICE: task[const.ASSIGN_PRICE],
+        const.FINISH_PRICE: task[const.FINISH_PRICE]
+    }
+    message = get_message(data, const.EVENT__PRICE_CREATED_V1, validator)
     await publish_message(
         publisher,
         routing_key,

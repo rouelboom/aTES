@@ -201,7 +201,7 @@ class TaskTrackerService(CorsViewMixin, JSONRPCView):
             # business event - worker changed
             await self._workflow_event_publisher.publish(
                 self._workflow_routing_key,
-                json.dumps(self._message(task, const.EVENT__TASK_ASSIGNED))
+                json.dumps(self._message(task, const.EVENT__TASK_REASSIGNED))
             )
 
     async def rpc_get_count_by_filter(self, filter: dict) -> int:  # pylint: disable = redefined-builtin

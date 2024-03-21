@@ -1,7 +1,6 @@
 """
 Manipulate in database with tables
 """
-import random
 from typing import List
 import uuid
 
@@ -14,20 +13,12 @@ from analytics.db import Task
 from analytics.dao.filters import make_string_filter
 
 
-async def handle_task_data(task, dao_tasks):
-    """
-    Creates new task if task not exist or updates existent task
-    """
-    task_id = task[const.ID]
+async def handle_task_data(task, dao_task):
     try:
-        await dao_tasks.get(task_id)
-        await dao_tasks.set(task)
+        await dao_task.get(task[const.TASK_ID])
+        await dao_task.set(task)
     except NotFound:
-        assign_price = random.randint(10, 20)
-        finish_price = random.randint(20, 40)
-        task[const.ASSIGN_PRICE] = assign_price
-        task[const.FINISH_PRICE] = finish_price
-        await dao_tasks.add_operation(task)
+        dao_task.add(task)
 
 
 class DAOTasks:

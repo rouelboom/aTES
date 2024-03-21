@@ -10,6 +10,7 @@ TASK_NAME = 'name'
 # в данном случае у нас имя exchange - workflow
 EVENT__TASK_ASSIGNED = 'task.assigned'
 EVENT__TASK_FINISHED = 'task.finished'
+EVENT__TASK_REASSIGNED = 'task.reassigned'
 
 # STREAMING EVENTS
 EVENT__TASK_CREATED = 'created'

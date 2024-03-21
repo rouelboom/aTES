@@ -50,8 +50,17 @@ def upgrade():
         'task',
         sa.Column('id', sa.String),
         sa.Column('assigned_worker', sa.String),
-        sa.Column('price', sa.Integer),
+        sa.Column('assign_price', sa.Integer),
+        sa.Column('finish_price', sa.Integer),
         sa.PrimaryKeyConstraint('id', name='task__id__pkey')
+    )
+
+    op.create_table(
+        'price',
+        sa.Column('task_id', sa.String),
+        sa.Column('assign_price', sa.Integer),
+        sa.Column('finish_price', sa.Integer),
+        sa.PrimaryKeyConstraint('id', name='price__task_id__pkey')
     )
 
 
@@ -60,3 +69,4 @@ def downgrade():
     op.drop_table('billing_cycle')
     op.drop_table('personal_balance')
     op.drop_table('task')
+    op.drop_table('price')

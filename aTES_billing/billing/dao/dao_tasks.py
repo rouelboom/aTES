@@ -10,7 +10,7 @@ from sqlalchemy import func
 
 from billing import const
 from billing.exceptions import NotFound
-from billing.db import Task
+from billing.db import Price, Task
 from billing.dao.filters import make_string_filter
 
 
@@ -27,7 +27,8 @@ async def handle_task_data(task, dao_tasks):
         finish_price = random.randint(20, 40)
         task[const.ASSIGN_PRICE] = assign_price
         task[const.FINISH_PRICE] = finish_price
-        await dao_tasks.add_operation(task)
+        await dao_tasks.add(task)
+        return task
 
 
 class DAOTasks:
@@ -37,12 +38,20 @@ class DAOTasks:
     def __init__(self, engine):
         self.engine = engine
 
+    @staticmethod
+    async def _add_price(conn, task):
+        price = {
+            const.TASK_ID: task[const.TASK_ID],
+            const.FINISH_PRICE: task[const.FINISH_PRICE],
+            const.ASSIGN_PRICE: task[const.ASSIGN_PRICE]
+        }
+        await conn.execute(Price.insert().values(**price))
+
     async def _add(self, conn, obj: dict) -> str:
-        if const.ID not in obj:
-            obj[const.ID] = uuid.uuid4().hex
         await conn.execute(
             Task.insert().values(**obj)
         )
+        await self._add_price(conn, obj)
         return obj[const.ID]
 
     async def _set(self, conn, obj: dict) -> None:
