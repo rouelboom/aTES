@@ -38,21 +38,6 @@ async def on_app_start(app):
     )
 
     app['rabbit_connection'] = rabbit_connection
-    operation_publisher = RabbitMQPublisher(
-        rabbit_connection,
-        exchange_name=config['exchanges']['operation_streaming']['name'],
-        exchange_type=config['exchanges']['operation_streaming']['type']
-    )
-    await operation_publisher.connect()
-    app['operation_publisher'] = operation_publisher
-
-    analytics_event_publisher = RabbitMQPublisher(
-        rabbit_connection,
-        exchange_name=config['exchanges']['analytics']['name'],
-        exchange_type=config['exchanges']['analytics']['type']
-    )
-    await analytics_event_publisher.connect()
-    app['analytics_event_publisher'] = analytics_event_publisher
 
     user_consumer = RabbitMQConsumer(
         rabbit_connection,
@@ -76,9 +61,31 @@ async def on_app_start(app):
     await task_consumer.connect()
     app['task_consumer'] = task_consumer
 
+    price_consumer = RabbitMQConsumer(
+        rabbit_connection,
+        exchange_name=config['exchange_subscriptions']['price_streaming'],
+        exchange_type='topic',
+        routing_key='*.price',
+        callback=user_callback,
+        callback_data=app
+    )
+    await price_consumer.connect()
+    app['price_consumer'] = price_consumer
+
+    operation_consumer = RabbitMQConsumer(
+        rabbit_connection,
+        exchange_name=config['exchange_subscriptions']['operation_streaming'],
+        exchange_type='topic',
+        routing_key='*.price',
+        callback=user_callback,
+        callback_data=app
+    )
+    await operation_consumer.connect()
+    app['operation_consumer'] = operation_consumer
+
     app['dao_tasks'] = DAOTasks(engine)
     app['dao_users'] = DAOUsers(engine)
-    app['dao_analytics'] = DAOBilling(engine)
+    app['dao_billing'] = DAOBilling(engine)
 
     app['schema_validator'] = SchemaRegistryValidator(config['schemas_dir_path'])
 

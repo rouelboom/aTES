@@ -21,6 +21,7 @@
     "exchange_subscriptions": {
         "user_streaming": "streaming.user",
         "task_streaming": "streaming.task",
-        "operation_streaming": "streaming.operation"
+        "operation_streaming": "streaming.operation",
+        "price_streaming": "streaming.price"
     }
 }
